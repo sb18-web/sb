@@ -1,0 +1,199 @@
+<!-- START OF FILE: tools/hash-generator.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SEO OPTIMIZATION -->
+  <title>Online Hash Generator | SHA-256, MD5, SHA-1 Calculator | Tulvaa</title>
+  <meta name="description" content="Generate secure hash codes for text using SHA-256, MD5, and SHA-1 algorithms. Fast, privacy-first, and client-side processing for data integrity checking." />
+  <!-- END SEO OPTIMIZATION -->
+  <!-- Updated to root-relative path -->
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <!-- Include CryptoJS library for MD5/SHA-1 calculation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+      /* Tool-specific styles based on the common layout */
+      .tool-page {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          padding-top: 2rem;
+          flex-grow: 1;
+          width: 100%;
+      }
+      .tool-page .tool-card {
+          max-width: 700px;
+          padding: 2rem;
+          width: 100%;
+          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+          background: var(--card);
+          border-radius: 12px;
+          border: 1px solid var(--border-color);
+      }
+      .tool-header { text-align: center; margin-bottom: 1.5rem; }
+      .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+      .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+      [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+      /* Custom UI for Hash Generator */
+      .tool-content { display: flex; flex-direction: column; gap: 1rem; }
+      .tool-content textarea { min-height: 150px; }
+      .tool-controls { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 1rem; margin-top: 1rem; }
+
+      .hash-output-container { margin-top: 1.5rem; }
+      .hash-output-row { margin-bottom: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; }
+      .hash-label { font-size: 0.9em; font-weight: 500; color: #64748b; margin-bottom: 0.2rem; display: block; }
+      [data-theme="dark"] .hash-label { color: #94a3b8; }
+      .hash-value { font-family: monospace; font-size: 0.95em; word-wrap: break-word; color: var(--text); }
+      .copy-button { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 0.9em; margin-left: 1rem; }
+  </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+  <main class="content tool-page">
+    <section class="tool-card">
+      <header class="tool-header">
+        <h1>🛡️ Hash Generator</h1>
+        <p class="tool-desc">Generate a secure SHA-256 hash for your text input.</p>
+      </header>
+
+      <div class="tool-content">
+        <textarea id='txtInput' placeholder='Enter text here...' class="tool-input"></textarea>
+
+        <div class="tool-controls">
+            <label for="algorithmSelect">Select Algorithm:</label>
+            <select id="algorithmSelect" class="tool-input" style="width: auto;">
+                <option value="sha256">SHA-256</option>
+                <option value="md5">MD5</option>
+                <option value="sha1">SHA-1</option>
+            </select>
+            <button class="btn" id='generateBtn'>Generate Hash</button>
+            <button class="btn" id='clearBtn'>Clear</button>
+        </div>
+      </div>
+
+      <div class="hash-output-container">
+          <!-- Output will be generated here -->
+      </div>
+    </section>
+
+    <div class="how-to">
+      <h3>How to Use</h3>
+      <ol>
+        <li>Paste your text into the input box.</li>
+        <li>Choose the hashing algorithm (SHA-256, MD5, or SHA-1).</li>
+        <li>Click "Generate Hash".</li>
+        <li>The resulting hash will appear in the output section.</li>
+        <li>Click the copy button to save the hash to your clipboard.</li>
+      </ol>
+    </div>
+  </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Elements ---
+        const txtInput = document.getElementById('txtInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const algorithmSelect = document.getElementById('algorithmSelect');
+        const outputContainer = document.querySelector('.hash-output-container');
+
+        // --- Hashing Logic (using Web Crypto API and CryptoJS) ---
+        // SHA-256 (Web Crypto API for speed and security)
+        async function sha256(str) {
+            const enc = new TextEncoder();
+            const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // MD5 (CryptoJS library)
+        function md5(str) {
+            return CryptoJS.MD5(str).toString();
+        }
+
+        // SHA-1 (CryptoJS library)
+        function sha1(str) {
+            return CryptoJS.SHA1(str).toString();
+        }
+
+        // --- Render Output ---
+        async function generateAndRenderHash() {
+            const text = txtInput.value;
+            const algorithm = algorithmSelect.value;
+
+            outputContainer.innerHTML = ''; // Clear previous results
+
+            if (!text) return;
+
+            let hashResult = '';
+            let label = '';
+
+            // Generate hash based on selected algorithm
+            if (algorithm === 'sha256') {
+                hashResult = await sha256(text);
+                label = 'SHA-256 Hash';
+            } else if (algorithm === 'md5') {
+                hashResult = md5(text);
+                label = 'MD5 Hash';
+            } else if (algorithm === 'sha1') {
+                hashResult = sha1(text);
+                label = 'SHA-1 Hash';
+            }
+
+            // Create output structure
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'hash-output-row';
+            outputDiv.innerHTML = `
+                <span class="hash-label">${label}:</span>
+                <div class="hash-value">${hashResult}</div>
+                <button class="copy-button" data-hash="${hashResult}">Copy</button>
+            `;
+            outputContainer.appendChild(outputDiv);
+        }
+
+        // --- Event Listeners ---
+        generateBtn.addEventListener('click', generateAndRenderHash);
+        clearBtn.addEventListener('click', () => {
+            txtInput.value = '';
+            outputContainer.innerHTML = '';
+        });
+
+        // Copy button listener (dynamic content)
+        outputContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('copy-button')) {
+                const textToCopy = event.target.dataset.hash;
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        event.target.textContent = 'Copied!';
+                        setTimeout(() => event.target.textContent = 'Copy', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy text.');
+                    });
+            }
+        });
+    });
+  </script>
+</body>
+</html>

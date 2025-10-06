@@ -1,0 +1,289 @@
+<!-- START OF FILE: tools/text-diff.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Text Difference Checker Online | Compare Text and Find Changes | Tulvaa</title>
+    <meta name="description" content="Paste two blocks of text to instantly compare them. Identify additions (green) and deletions (red) in real-time. Supports both word-by-word and line-by-line comparison modes. Privacy-first local tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include Google's diff-match-patch library for word-level highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/20121119/diff_match_patch.js"></script>
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 900px; /* Wider card for comparison UI */
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Text Diff --- */
+        .diff-input-layout {
+            display: flex;
+            gap: 1rem;
+        }
+        .diff-input-layout textarea {
+            flex-grow: 1;
+            min-height: 250px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .diff-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+        [data-theme="dark"] .diff-stats { color: #94a3b8; }
+
+        .diff-output-layout {
+            display: flex;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+        .diff-output-area {
+            flex-grow: 1;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow: auto;
+            max-height: 400px; /* Limit height for readability */
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+        [data-theme="dark"] .diff-output-area { background: #334155; }
+
+        /* Highlighting styles (used by diff_prettyHtml) */
+        ins { background-color: #d1fae5; text-decoration: none; } /* Added text */
+        del { background-color: #fee2e2; text-decoration: line-through; } /* Removed text */
+        [data-theme="dark"] ins { background-color: #102a2a; color: #6ee7b7; }
+        [data-theme="dark"] del { background-color: #3f1010; color: #fca5a5; }
+
+        /* Controls (new options) */
+        .diff-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .diff-options-group { display: flex; align-items: center; gap: 0.5rem; }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .diff-input-layout { flex-direction: column; }
+            .diff-output-layout { flex-direction: column; }
+            .diff-controls { justify-content: space-between; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🔍 Text Difference Checker</h1>
+                <p class="tool-desc">Paste two blocks of text to identify differences. Lines added are highlighted in green, and lines removed are highlighted in red.</p>
+            </header>
+
+            <div class="diff-input-layout">
+                <div>
+                    <div class="diff-stats" id="statsA">Words: 0 | Characters: 0</div>
+                    <textarea id="textA" placeholder="Original Text (Text A)" class="tool-input"></textarea>
+                </div>
+                <div>
+                    <div class="diff-stats" id="statsB">Words: 0 | Characters: 0</div>
+                    <textarea id="textB" placeholder="Modified Text (Text B)" class="tool-input"></textarea>
+                </div>
+            </div>
+            
+            <div class="diff-controls">
+                <button class="btn" id="compareBtn">Compare Texts</button>
+                <div class="diff-options-group">
+                    <input type="checkbox" id="lineModeCheckbox">
+                    <label for="lineModeCheckbox">Line-by-Line Mode</label>
+                </div>
+                <button class="btn" id="swapBtn">Swap A/B</button> <!-- NEW SWAP BUTTON -->
+                <button class="btn" id="clearBtn">Clear</button>
+            </div>
+
+            <div class="diff-output-layout" id="outputLayout" style="display: none;">
+                <div class="diff-output-area" id="outputA"></div>
+                <div class="diff-output-area" id="outputB"></div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste the original version of the text into the left box (Text A).</li>
+                <li>Paste the modified version of the text into the right box (Text B).</li>
+                <li>(New) Select "Line-by-Line Mode" to compare changes line by line, or uncheck for word-by-word comparison.</li>
+                <li>Click "Compare Texts" to see the differences.</li>
+                <li>Added lines will appear in Text B (green highlight), and removed lines will appear in Text A (red highlight).</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const textA = document.getElementById('textA');
+            const textB = document.getElementById('textB');
+            const compareBtn = document.getElementById('compareBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const outputLayout = document.getElementById('outputLayout');
+            const outputA = document.getElementById('outputA');
+            const outputB = document.getElementById('outputB');
+            const statsA = document.getElementById('statsA');
+            const statsB = document.getElementById('statsB');
+            const swapBtn = document.getElementById('swapBtn'); // NEW swap button
+            const lineModeCheckbox = document.getElementById('lineModeCheckbox'); // NEW option
+
+            // --- Utility: Get word and character counts ---
+            function getCounts(text) {
+                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                const characters = text.length;
+                return { words, characters };
+            }
+
+            // --- Render statistics ---
+            function updateStats() {
+                const countA = getCounts(textA.value);
+                const countB = getCounts(textB.value);
+                statsA.textContent = `Words: ${countA.words} | Characters: ${countA.characters}`;
+                statsB.textContent = `Words: ${countB.words} | Characters: ${countB.characters}`;
+            }
+
+            // --- Comparison Logic (Using diff-match-patch) ---
+            function renderDiff() {
+                const dmp = new diff_match_patch();
+                const diffs = dmp.diff_main(textA.value, textB.value);
+                dmp.diff_cleanupSemantic(diffs);
+
+                const linesA_arr = textA.value.split('\n');
+                const linesB_arr = textB.value.split('\n');
+                const maxLines = Math.max(linesA_arr.length, linesB_arr.length);
+                let htmlA = '';
+                let htmlB = '';
+
+                // NEW: Check for line mode setting
+                const useLineMode = lineModeCheckbox.checked;
+
+                for(let i = 0; i < maxLines; i++) {
+                    const lineA = linesA_arr[i] || '';
+                    const lineB = linesB_arr[i] || '';
+
+                    if (lineA === lineB) {
+                        htmlA += `<div class="diff-line">${lineA}</div>`;
+                        htmlB += `<div class="diff-line">${lineB}</div>`;
+                    } else {
+                        // NEW: Line-by-Line mode logic
+                        if (useLineMode) {
+                            htmlA += `<div class="diff-line diff-removed">${lineA}</div>`;
+                            htmlB += `<div class="diff-line diff-added">${lineB}</div>`;
+                        } else {
+                            // Existing Word-by-Word mode logic
+                            const wordDiffs = dmp.diff_main(lineA, lineB);
+                            let highlightedA = '';
+                            let highlightedB = '';
+
+                            wordDiffs.forEach(part => {
+                                const type = part[0];
+                                const text = part[1];
+                                const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                                if (type === 0) { // Same text
+                                    highlightedA += escapedText;
+                                    highlightedB += escapedText;
+                                } else if (type === 1) { // Added text (in lineB)
+                                    highlightedB += `<span class="diff-added">${escapedText}</span>`;
+                                } else if (type === -1) { // Removed text (from lineA)
+                                    highlightedA += `<span class="diff-removed">${escapedText}</span>`;
+                                }
+                            });
+
+                            htmlA += `<div class="diff-line">${highlightedA}</div>`;
+                            htmlB += `<div class="diff-line">${highlightedB}</div>`;
+                        }
+                    }
+                }
+
+                outputA.innerHTML = htmlA;
+                outputB.innerHTML = htmlB;
+                outputLayout.style.display = 'flex';
+            }
+
+            // --- Swap Button Logic (NEW FEATURE) ---
+            swapBtn.addEventListener('click', () => {
+                const tempText = textA.value;
+                textA.value = textB.value;
+                textB.value = tempText;
+                // Rerun update functions to refresh display and stats
+                updateStats();
+                renderDiff();
+            });
+
+            // Event listeners
+            compareBtn.addEventListener('click', renderDiff);
+            clearBtn.addEventListener('click', () => {
+                textA.value = '';
+                textB.value = '';
+                outputA.innerHTML = '';
+                outputB.innerHTML = '';
+                outputLayout.style.display = 'none';
+                updateStats(); // Clear stats too
+            });
+
+            // Update stats on input change
+            textA.addEventListener('input', updateStats);
+            textB.addEventListener('input', updateStats);
+
+            // Initial stats load
+            updateStats();
+        });
+    </script>
+</body>
+</html>

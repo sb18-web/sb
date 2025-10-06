@@ -1,0 +1,251 @@
+<!-- START OF FILE: tools/image-placeholder-generator.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Image Placeholder Generator | Customize Dimensions and Colors | Tulvaa</title>
+    <meta name="description" content="Generate custom placeholder images for web design and development. Specify dimensions, text, colors, and font style. Fast, in-browser processing without uploads." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Image Placeholder Generator --- */
+        .placeholder-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .placeholder-controls label { font-size: 0.9em; font-weight: 500; margin-bottom: 0.2rem; display: block; }
+        .placeholder-controls input[type="text"],
+        .placeholder-controls input[type="number"],
+        .placeholder-controls select { font-size: 1em; }
+        .placeholder-controls input[type="color"] { width: 100%; height: 40px; }
+
+        .image-preview-area { margin-top: 2rem; text-align: center; }
+        .image-preview-area img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+
+        /* Aspect ratio lock button style */
+        .aspect-ratio-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 0.5rem;
+        }
+        .aspect-ratio-toggle input[type="checkbox"] { margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🖼️ Image Placeholder Generator</h1>
+                <p class="tool-desc">Create custom placeholder images for web design and development, specifying dimensions and text. No server-side processing.</p>
+            </header>
+
+            <div class="placeholder-controls">
+                <div>
+                    <label for="widthInput">Width (px):</label>
+                    <input type="number" id="widthInput" value="300" class="tool-input">
+                    <div class="aspect-ratio-toggle">
+                        <input type="checkbox" id="aspectLock" checked>
+                        <label for="aspectLock">Keep Aspect Ratio</label>
+                    </div>
+                </div>
+                <div>
+                    <label for="heightInput">Height (px):</label>
+                    <input type="number" id="heightInput" value="200" class="tool-input">
+                </div>
+                <div>
+                    <label for="textInput">Placeholder Text:</label>
+                    <input type="text" id="textInput" value="Tulvaa Placeholder" class="tool-input">
+                </div>
+                <div>
+                    <label for="textColor">Text Color:</label>
+                    <input type="color" id="textColor" value="#ffffff" class="tool-input">
+                </div>
+                <div>
+                    <label for="bgColor">Background Color:</label>
+                    <input type="color" id="bgColor" value="#cccccc" class="tool-input">
+                </div>
+                <div>
+                    <label for="fontStyle">Font Style:</label>
+                    <select id="fontStyle" class="tool-input">
+                        <option value="normal">Normal</option>
+                        <option value="bold">Bold</option>
+                        <option value="italic">Italic</option>
+                        <option value="bold italic">Bold Italic</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tool-controls" style="margin-top: 1.5rem;">
+                <button class="btn" id="generateBtn">Generate Image</button>
+                <button class="btn" id="clearBtn">Clear</button> <!-- NEW CLEAR BUTTON -->
+            </div>
+
+            <div class="image-preview-area" id="imagePreviewArea" style="display: none;">
+                <h3 style="margin-top: 1.5rem;">Generated Image:</h3>
+                <img id="placeholderImage" src="" alt="Placeholder Image">
+                <a class="btn" id="downloadLink" download="placeholder.png" style="margin-top: 1rem;">⬇️ Download Image</a>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Enter the desired width and height for your placeholder image.</li>
+                <li>(New) Use the "Keep Aspect Ratio" option to maintain proportion when changing dimensions.</li>
+                <li>Customize the text, text color, background color, and font style.</li>
+                <li>Click "Generate Image" to create the placeholder.</li>
+                <li>Download the generated PNG file for use in your projects.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const textInput = document.getElementById('textInput');
+            const textColorInput = document.getElementById('textColor');
+            const bgColorInput = document.getElementById('bgColor');
+            const fontStyleSelect = document.getElementById('fontStyle'); // NEW font style select
+            const aspectLockCheck = document.getElementById('aspectLock'); // NEW aspect ratio lock
+            const generateBtn = document.getElementById('generateBtn');
+            const placeholderImage = document.getElementById('placeholderImage');
+            const downloadLink = document.getElementById('downloadLink');
+            const imagePreviewArea = document.getElementById('imagePreviewArea');
+            const clearBtn = document.getElementById('clearBtn'); // NEW clear button
+
+            // --- State Variables ---
+            let originalRatio = 1;
+
+            // --- Generate Image Function ---
+            function generatePlaceholder() {
+                const width = parseInt(widthInput.value) || 300;
+                const height = parseInt(heightInput.value) || 200;
+                const text = textInput.value || `${width} x ${height}`;
+                const textColor = textColorInput.value;
+                const bgColor = bgColorInput.value;
+                const fontStyle = fontStyleSelect.value; // Get new font style
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // Draw background
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw text
+                ctx.fillStyle = textColor;
+                const fontSize = Math.min(width, height) / 8;
+                ctx.font = `${fontStyle} ${fontSize}px Inter, sans-serif`; // Apply font style and family
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, width / 2, height / 2);
+
+                const dataUrl = canvas.toDataURL('image/png');
+                placeholderImage.src = dataUrl;
+                downloadLink.href = dataUrl;
+                downloadLink.download = `placeholder-${width}x${height}.png`;
+                imagePreviewArea.style.display = 'block';
+            }
+
+            // --- Aspect Ratio Lock Logic (NEW) ---
+            function updateAspectRatio(event) {
+                if (!aspectLockCheck.checked) return;
+
+                const inputChanged = event.target.id;
+                const newWidth = parseInt(widthInput.value);
+                const newHeight = parseInt(heightInput.value);
+
+                if (newWidth && newHeight) {
+                    originalRatio = newWidth / newHeight;
+                }
+
+                if (inputChanged === 'widthInput' && !isNaN(newWidth) && originalRatio > 0) {
+                    heightInput.value = Math.round(newWidth / originalRatio);
+                } else if (inputChanged === 'heightInput' && !isNaN(newHeight) && originalRatio > 0) {
+                    widthInput.value = Math.round(newHeight * originalRatio);
+                }
+                generatePlaceholder();
+            }
+
+            // --- Reset Function (NEW) ---
+            function resetForm() {
+                widthInput.value = 300;
+                heightInput.value = 200;
+                textInput.value = 'Tulvaa Placeholder';
+                textColorInput.value = '#ffffff';
+                bgColorInput.value = '#cccccc';
+                fontStyleSelect.value = 'normal';
+                aspectLockCheck.checked = true;
+                generatePlaceholder();
+            }
+
+            // --- Event Listeners ---
+            generateBtn.addEventListener('click', generatePlaceholder);
+            clearBtn.addEventListener('click', resetForm); // New event listener
+
+            // Live updates on input change, using the new updateAspectRatio function
+            widthInput.addEventListener('input', updateAspectRatio);
+            heightInput.addEventListener('input', updateAspectRatio);
+            textInput.addEventListener('input', generatePlaceholder);
+            textColorInput.addEventListener('input', generatePlaceholder);
+            bgColorInput.addEventListener('input', generatePlaceholder);
+            fontStyleSelect.addEventListener('change', generatePlaceholder);
+
+            // Initial setup on page load
+            generatePlaceholder();
+        });
+    </script>
+</body>
+</html>

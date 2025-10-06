@@ -1,0 +1,181 @@
+<!-- START OF FILE: tools/text-to-pdf.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Text to PDF Converter Online | Create PDF from Text | Tulvaa</title>
+    <meta name="description" content="Convert plain text into a PDF document instantly. Customize page size, font size, and margins before downloading. Fast and private in-browser tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include jsPDF Library for generating PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Text to PDF --- */
+        .text-input-container textarea {
+            min-height: 250px;
+            font-family: monospace; /* Use a monospaced font for code */
+            font-size: 0.95em;
+        }
+        .tool-controls { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .tool-options { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .tool-options label { font-size: 0.9em; font-weight: 500; }
+        .tool-options input[type="number"], .tool-options select { padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>📄 Text to PDF Converter</h1>
+                <p class="tool-desc">Enter text and download it as a PDF document. Choose formatting options for a customized output.</p>
+            </header>
+
+            <div class="text-input-container">
+                <textarea id="txtInput" placeholder="Enter text here..." class="tool-input"></textarea>
+            </div>
+
+            <div class="tool-options"> <!-- NEW OPTIONS GROUP -->
+                <div>
+                    <label for="pageSizeSelect">Page Size:</label>
+                    <select id="pageSizeSelect" class="tool-input">
+                        <option value="a4">A4</option>
+                        <option value="letter">Letter</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="fontSizeInput">Font Size:</label>
+                    <input type="number" id="fontSizeInput" value="12" min="8" max="24" class="tool-input">
+                </div>
+                <div>
+                    <label for="marginInput">Margin (mm):</label>
+                    <input type="number" id="marginInput" value="10" min="5" max="50" class="tool-input">
+                </div>
+            </div>
+
+            <div class="tool-controls">
+                <button class="btn" id="goBtn">Download PDF</button>
+                <button class="btn" id="clearBtn">Clear</button>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste your text into the input box.</li>
+                <li>(New) Customize page size, font size, and margins for the PDF output.</li>
+                <li>Click "Download PDF" to generate the PDF file.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const txtInput = document.getElementById('txtInput');
+            const goBtn = document.getElementById('goBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const pageSizeSelect = document.getElementById('pageSizeSelect'); // NEW element
+            const fontSizeInput = document.getElementById('fontSizeInput'); // NEW element
+            const marginInput = document.getElementById('marginInput'); // NEW element
+
+            // --- PDF Generation Logic (using jspdf) ---
+            goBtn.addEventListener('click', () => {
+                const text = txtInput.value;
+                if (!text) {
+                    alert('Please enter text to convert.');
+                    return;
+                }
+
+                // Get options from UI
+                const pageSize = pageSizeSelect.value;
+                const fontSize = parseInt(fontSizeInput.value) || 12;
+                const margin = parseInt(marginInput.value) || 10;
+
+                // Create PDF document
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    unit: 'mm',
+                    format: pageSize,
+                });
+
+                // Set initial position and font settings
+                let cursorY = margin;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const textWidth = pageWidth - 2 * margin;
+
+                doc.setFontSize(fontSize);
+
+                // Split text into lines that fit within the page width
+                const lines = doc.splitTextToSize(text, textWidth);
+
+                // Add lines to PDF, handling page breaks
+                lines.forEach(line => {
+                    // Check for page overflow
+                    if (cursorY + fontSize / 2 > doc.internal.pageSize.getHeight() - margin) {
+                        doc.addPage();
+                        cursorY = margin;
+                    }
+                    doc.text(line, margin, cursorY);
+                    cursorY += fontSize / 2; // Move cursor down by font size + line spacing
+                });
+
+                // Download PDF file
+                doc.save('document.pdf');
+            });
+
+            // --- Clear Button Logic ---
+            clearBtn.addEventListener('click', () => {
+                txtInput.value = '';
+            });
+
+            // --- Initial setup on load (for PWA and navigation, handled by load-components.js) ---
+        });
+    </script>
+</body>
+</html>

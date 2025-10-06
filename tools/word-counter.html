@@ -1,0 +1,184 @@
+<!-- START OF FILE: tools/word-counter.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Online Word Counter Tool | Character, Line and Paragraph Count | Tulvaa</title>
+    <meta name="description" content="Count words, characters (with and without spaces), lines, and paragraphs instantly in your text. Real-time updates as you type. Private and secure in-browser processing." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Word Counter --- */
+        .word-counter-layout { display: flex; flex-direction: column; gap: 1rem; }
+        .word-counter-layout textarea { min-height: 250px; }
+        .counter-results {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .counter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 80px;
+            padding: 0.5rem;
+        }
+        .counter-value { font-size: 1.5em; font-weight: 700; color: var(--accent); }
+        .counter-label { font-size: 0.9em; color: #64748b; }
+        /* Adjusted layout for more detailed character counts */
+        .counter-results { justify-content: space-around; }
+        .counter-results > div { flex-basis: 30%; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>✏️ Word Counter</h1>
+                <p class="tool-desc">Count words, characters, lines, and paragraphs in your text. Results update in real-time as you type.</p>
+            </header>
+
+            <div class="word-counter-layout">
+                <textarea id="txtInput" placeholder="Start typing or paste your text here..." class="tool-input"></textarea>
+                
+                <div class="tool-controls">
+                    <button class="btn" id="clearBtn">Clear Text</button>
+                </div>
+
+                <div class="counter-results" id="counterResults">
+                    <div class="counter-item">
+                        <span class="counter-value" id="wordCount">0</span>
+                        <span class="counter-label">Words</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-value" id="charCount">0</span>
+                        <span class="counter-label">Characters (with spaces)</span> <!-- NEW label -->
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-value" id="charCountNoSpaces">0</span> <!-- NEW element -->
+                        <span class="counter-label">Characters (no spaces)</span> <!-- NEW label -->
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-value" id="lineCount">0</span>
+                        <span class="counter-label">Lines</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-value" id="paraCount">0</span>
+                        <span class="counter-label">Paragraphs</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste or type text into the text area.</li>
+                <li>The word, character, line, and paragraph counts will update immediately.</li>
+                <li>(New) The tool now provides both a count including spaces and a count excluding spaces.</li>
+                <li>Use the clear button to reset the text and counts.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const txtInput = document.getElementById('txtInput');
+            const wordCountSpan = document.getElementById('wordCount');
+            const charCountSpan = document.getElementById('charCount');
+            const charCountNoSpacesSpan = document.getElementById('charCountNoSpaces'); // NEW element
+            const lineCountSpan = document.getElementById('lineCount');
+            const paraCountSpan = document.getElementById('paraCount');
+            const clearBtn = document.getElementById('clearBtn');
+
+            function updateCounts() {
+                const text = txtInput.value;
+
+                // 1. Character Count (with spaces)
+                const charactersWithSpaces = text.length;
+
+                // 2. Character Count (without spaces) (NEW calculation)
+                const charactersWithoutSpaces = text.replace(/\s/g, '').length;
+
+                // 3. Word Count (filter out empty strings from splitting on whitespace)
+                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+
+                // 4. Line Count
+                const lines = text.split('\n').length;
+
+                // 5. Paragraph Count (filter empty lines)
+                const paragraphs = text.split('\n').filter(line => line.trim().length > 0).length;
+
+                wordCountSpan.textContent = words;
+                charCountSpan.textContent = charactersWithSpaces;
+                charCountNoSpacesSpan.textContent = charactersWithoutSpaces; // Update new element
+                lineCountSpan.textContent = lines;
+                paraCountSpan.textContent = paragraphs;
+            }
+
+            // --- Event Listeners ---
+            txtInput.addEventListener('input', updateCounts);
+            clearBtn.addEventListener('click', () => {
+                txtInput.value = '';
+                updateCounts(); // Reset counts to 0
+            });
+
+            // Initial call to set counts to 0 on load
+            updateCounts();
+        });
+    </script>
+</body>
+</html>

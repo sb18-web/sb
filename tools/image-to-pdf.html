@@ -1,0 +1,469 @@
+<!-- START OF FILE: tools/image-to-pdf.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- SEO OPTIMIZATION -->
+  <title>Image to PDF Converter Online | Combine Multiple Photos to PDF | Tulvaa</title>
+  <meta name="description" content="Convert images to PDF securely and offline with our privacy-first tool. Combine JPG, PNG, and other photos into a single PDF document. No uploads required." />
+  <!-- END SEO OPTIMIZATION -->
+  <!-- Updated to root-relative path -->
+  <link rel="stylesheet" href="/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <!-- Include external CSS for drag/sort functionality if needed -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.css"/>
+  <style>
+    /* Add specific styles here or update style.css for tool layouts */
+    .tool-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 2rem;
+      flex-grow: 1;
+      width: 100%;
+    }
+    .tool-page .tool-card {
+      max-width: 1050px;
+      padding: 2rem;
+      width: 100%;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    .tool-header { text-align: center; margin-bottom: 1.5rem; }
+    .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+    .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+    [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+    /* --- PDF Layout Specifics --- */
+    .pdf-tool-flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.2rem;
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: 1rem;
+    }
+    .pdf-images, .pdf-options {
+      background: var(--bg); /* Use page background or a light card color */
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    [data-theme="dark"] .pdf-images, [data-theme="dark"] .pdf-options { background: #2a374a; }
+
+    .pdf-images {
+      padding: 1rem;
+      min-width: 340px;
+      max-width: 420px;
+      flex: 2 1 380px;
+      position: relative;
+    }
+    .pdf-options {
+      padding: 1.4rem;
+      min-width: 220px;
+      max-width: 350px;
+      flex: 1 1 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+    }
+    /* --- Upload Drop Zone --- */
+    .upload-drop-zone {
+      border: 2px dashed var(--accent);
+      border-radius: 8px;
+      background: var(--card);
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+      padding: 1.5rem 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      font-size: 1.05em;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .upload-drop-zone:hover, .upload-drop-zone.active {
+      border-color: #1e40af;
+      background: #e0ebff;
+    }
+    [data-theme="dark"] .upload-drop-zone { background: #334155; }
+    [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+    .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+    .upload-drop-zone input[type="file"] { display: none; }
+    .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+    /* --- Image preview list --- */
+    .img-list { display: flex; flex-direction: column; align-items: stretch; gap: 1em; margin-top: 1em; }
+    .img-item {
+        display: flex;
+        align-items: center;
+        gap: 1em;
+        background: var(--card);
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+        padding: 0.6em;
+        width: 100%;
+        position: relative;
+        cursor: move;
+        user-select: none; /* Prevent selection issues on drag */
+    }
+    [data-theme="dark"] .img-item { background: #334155; }
+    .img-thumb { border-radius: 6px; width: 50px; height: 50px; object-fit: cover; border: 1px solid #e2e8f0; }
+    .img-filename { font-size: 0.9em; color: var(--text); flex-grow: 1; overflow-x: auto; white-space: nowrap; }
+    .img-remove-btn {
+        background: none;
+        color: #ef4444;
+        border: none;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .img-remove-btn:hover { color: #c81e1e; }
+    .img-list.empty { color: #888; font-size: 1em; margin-top: 2em; text-align: center; }
+
+    /* --- PDF Options Panel Styles --- */
+    .pdf-opt-label { font-size: 0.95em; color: #475569; margin-bottom: 0.5em; font-weight: 500; }
+    [data-theme="dark"] .pdf-opt-label { color: #94a3b8; }
+    .pdf-opt-group { display: flex; gap: 0.5rem; }
+    .pdf-opt-btn, .pdf-main-btn {
+        padding: 0.7rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        background: var(--card);
+        color: var(--text);
+        flex: 1;
+    }
+    .pdf-opt-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .pdf-main-btn { background: var(--accent); color: white; border: none; margin-top: 1rem; width: 100%; font-size: 1.1rem; }
+    .pdf-opt-dropdown { width: 100%; padding: 0.7rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card); color: var(--text); }
+    .pdf-checkbox { width: 18px; height: 18px; margin-right: 0.5rem; }
+
+    /* --- Results Section --- */
+    .result-box {
+        background: var(--card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        text-align: center;
+    }
+    .result-box button, .result-box a { margin: 0.5rem; } /* Add spacing between result buttons */
+
+    /* --- How To Section --- */
+    .how-to {
+      max-width: 800px;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    .how-to h3 { color: var(--text); margin-bottom: 1rem; }
+    .how-to ol { list-style-position: inside; padding-left: 0; }
+    .how-to li { margin-bottom: 0.5rem; color: #475569; }
+    [data-theme="dark"] .how-to li { color: #94a3b8; }
+
+    /* Mobile adjustments: Stack columns vertically for mobile devices */
+    @media (max-width: 900px) {
+      .pdf-tool-flex { flex-direction: column; gap: 1.2rem; align-items: stretch;}
+      .pdf-images, .pdf-options { max-width: 100%; min-width: unset; }
+      .pdf-tool-flex { padding: 0 1rem; } /* Add padding to flex container for better spacing on mobile */
+      .upload-drop-zone { min-height: 100px; }
+    }
+    @media (max-width: 600px) {
+      .pdf-images, .pdf-options { min-width: unset; }
+      .img-thumb { width: 38px; }
+      .img-filename { font-size: 0.9em; max-width: 150px;}
+    }
+  </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+  <main class="content tool-page">
+    <section class="tool-card">
+        <header class="tool-header">
+            <h1>📄 Image to PDF Converter</h1>
+            <p class="tool-desc">Combine multiple images into a single PDF document. Adjust layout and compression settings before exporting.</p>
+        </header>
+
+        <div class="pdf-tool-flex">
+            <div class="pdf-images">
+                <div class="upload-drop-zone" id="dropZone">
+                    <span class="add-icon">+</span>
+                    <span style="font-weight:500;">Add images or drag & drop</span>
+                    <input type="file" id="files" accept="image/png,image/jpeg" multiple>
+                    <div class="drop-hint">Supported formats: JPG, PNG</div>
+                </div>
+                <!-- Image list container -->
+                <div id="imgListContainer" class="img-list">
+                    <!-- Images will be injected here -->
+                </div>
+            </div>
+
+            <div class="pdf-options">
+                <!-- PDF Options -->
+                <div class="pdf-options-group">
+                    <div class="pdf-opt-label">Page Size:</div>
+                    <select id="pageSize" class="pdf-opt-dropdown">
+                        <option value="A4">A4 (210 x 297 mm)</option>
+                        <option value="Letter">Letter (8.5 x 11 in)</option>
+                        <option value="Fit">Fit to Image</option>
+                    </select>
+                </div>
+
+                <div class="pdf-options-group">
+                    <div class="pdf-opt-label">Orientation:</div>
+                    <div class="pdf-opt-group">
+                        <button class="pdf-opt-btn active" data-orientation="portrait">Portrait</button>
+                        <button class="pdf-opt-btn" data-orientation="landscape">Landscape</button>
+                    </div>
+                </div>
+
+                <div class="pdf-options-group">
+                    <div class="pdf-opt-label">Compression Quality:</div>
+                    <select id="compressionQuality" class="pdf-opt-dropdown">
+                        <option value="0.9">High Quality (90%)</option>
+                        <option value="0.7">Medium Quality (70%)</option>
+                        <option value="0.5">Low Quality (50%)</option>
+                    </select>
+                </div>
+
+                <div class="pdf-options-group">
+                    <div class="pdf-opt-label">Page Margin:</div>
+                    <div class="pdf-opt-group">
+                        <button class="pdf-opt-btn active" data-margin="none">None</button>
+                        <button class="pdf-opt-btn" data-margin="small">Small</button>
+                        <button class="pdf-opt-btn" data-margin="large">Large</button>
+                    </div>
+                </div>
+
+                <button class="pdf-main-btn" id="generatePdfBtn" disabled>Generate PDF</button>
+                <button class="pdf-main-btn" id="clearBtn">Clear All</button>
+            </div>
+        </div>
+        <div class="result-box" id="resultBox" style="display: none;">
+            <p style="margin-bottom: 1rem;">PDF generated successfully.</p>
+            <a class="btn" id="downloadPdfLink" download="images_to_pdf.pdf">⬇️ Download PDF</a>
+        </div>
+    </section>
+
+    <section class="how-to">
+        <h3>How to Use</h3>
+        <ol>
+            <li>Drag and drop one or more images into the box, or click to select files.</li>
+            <li>Use drag-and-drop to reorder images in the list.</li>
+            <li>Choose page size, orientation, compression quality, and margins from the options panel.</li>
+            <li>Click "Generate PDF" to create and download the merged document instantly.</li>
+        </ol>
+    </section>
+  </main>
+
+  <!-- PWA Install Button -->
+  <div class="pwa-install-container">
+    <button class="btn" id="installButton" style="display:none;">Install App</button>
+  </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+  <!-- Scripts -->
+  <!-- NEW: Load the component loader script first -->
+  <script src="/js/load-components.js"></script>
+  <!-- Keep existing scripts here -->
+  <script src="/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Elements ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('files');
+        const imgListContainer = document.getElementById('imgListContainer');
+        const generatePdfBtn = document.getElementById('generatePdfBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultBox = document.getElementById('resultBox');
+        const downloadPdfLink = document.getElementById('downloadPdfLink');
+
+        // Options elements
+        const pageSizeSelect = document.getElementById('pageSize');
+        const compressionQualitySelect = document.getElementById('compressionQuality');
+        const orientationBtns = document.querySelectorAll('.pdf-opt-group button[data-orientation]');
+        const marginBtns = document.querySelectorAll('.pdf-opt-group button[data-margin]');
+
+        // --- State Variables ---
+        let imageFiles = []; // Array to store image data URLs or file objects
+        let currentOptions = {
+            pageSize: 'A4',
+            orientation: 'portrait',
+            compressionQuality: 0.9,
+            margin: 'none'
+        };
+
+        // --- UI State Update ---
+        function updateUIState() {
+            generatePdfBtn.disabled = imageFiles.length === 0;
+        }
+
+        // --- Image Handling ---
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            handleFileSelection(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', e => handleFileSelection(e.target.files));
+
+        function handleFileSelection(files) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    addImageToPreview(reader.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Add image to preview list and update state
+        function addImageToPreview(dataUrl, fileName) {
+            const id = Date.now() + Math.random(); // Simple unique ID
+            imageFiles.push({ id, dataUrl, fileName });
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'img-item';
+            itemDiv.dataset.id = id;
+            itemDiv.innerHTML = `
+                <img src="${dataUrl}" class="img-thumb" alt="${fileName}">
+                <span class="img-filename">${fileName}</span>
+                <button class="img-remove-btn" data-id="${id}">&#x2715;</button>
+            `;
+            imgListContainer.appendChild(itemDiv);
+
+            updateUIState();
+        }
+
+        // Remove image listener
+        imgListContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('img-remove-btn')) {
+                const idToRemove = parseInt(event.target.dataset.id);
+                imageFiles = imageFiles.filter(item => item.id !== idToRemove);
+                event.target.closest('.img-item').remove();
+                updateUIState();
+            }
+        });
+
+        // --- PDF Generation Logic (using jspdf) ---
+        generatePdfBtn.addEventListener('click', async () => {
+            if (imageFiles.length === 0) return;
+
+            // --- UI state: disable button during processing ---
+            generatePdfBtn.disabled = true;
+            generatePdfBtn.textContent = 'Generating...';
+
+            // Create new PDF document
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF(currentOptions.orientation, 'mm', currentOptions.pageSize);
+
+            // Set compression quality for images (default is 0.9)
+            const quality = parseFloat(currentOptions.compressionQuality);
+
+            for (let i = 0; i < imageFiles.length; i++) {
+                const imgDataUrl = imageFiles[i].dataUrl;
+                const img = new Image();
+                img.src = imgDataUrl;
+                await new Promise(resolve => img.onload = resolve);
+
+                // Calculate dimensions for PDF page
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const imgWidth = pageWidth;
+                const imgHeight = (img.height * imgWidth) / img.width;
+
+                // Add new page if not first page or if image height exceeds page height
+                if (i > 0) doc.addPage();
+
+                // Add image to PDF page
+                doc.addImage(imgDataUrl, 'JPEG', 0, 0, imgWidth, imgHeight, null, quality);
+            }
+
+            // --- Final Download ---
+            const pdfBlob = doc.output('blob');
+            const url = URL.createObjectURL(pdfBlob);
+            downloadPdfLink.href = url;
+            downloadPdfLink.download = `images_to_pdf_${Date.now()}.pdf`;
+
+            // --- UI state: enable button and show result ---
+            generatePdfBtn.disabled = false;
+            generatePdfBtn.textContent = 'Generate PDF';
+            resultBox.style.display = 'block';
+        });
+
+        // --- Options Handling ---
+        // Page Size Selection
+        pageSizeSelect.addEventListener('change', (event) => {
+            currentOptions.pageSize = event.target.value;
+        });
+        // Compression Quality Selection
+        compressionQualitySelect.addEventListener('change', (event) => {
+            currentOptions.compressionQuality = parseFloat(event.target.value);
+        });
+        // Orientation Selection
+        orientationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                orientationBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentOptions.orientation = btn.dataset.orientation;
+            });
+        });
+        // Margin Selection
+        marginBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                marginBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentOptions.margin = btn.dataset.margin;
+            });
+        });
+
+        // --- Reordering Logic (using Sortable.js) ---
+        new Sortable(imgListContainer, {
+            animation: 150,
+            onEnd: () => {
+                // Update imageFiles array based on new order of elements in imgListContainer
+                const newOrder = Array.from(imgListContainer.children).map(child => parseFloat(child.dataset.id));
+                const reorderedFiles = [];
+                newOrder.forEach(id => {
+                    const file = imageFiles.find(item => item.id === id);
+                    if (file) reorderedFiles.push(file);
+                });
+                imageFiles = reorderedFiles;
+            }
+        });
+
+        // --- Clear All Function ---
+        clearBtn.addEventListener('click', () => {
+            imageFiles = [];
+            imgListContainer.innerHTML = '';
+            resultBox.style.display = 'none';
+            updateUIState();
+        });
+
+        // Initial setup call
+        updateUIState();
+    });
+  </script>
+</body>
+</html>

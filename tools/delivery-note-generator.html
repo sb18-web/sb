@@ -1,0 +1,389 @@
+<!-- START OF FILE: tools/delivery-note-generator.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Free Delivery Note & Challan Generator Online | Tulvaa</title>
+    <meta name="description" content="Create professional delivery notes, challans, or basic invoices for free. Customize sender/recipient details, item lists, and export as PDF or image. All processing is private and runs in your browser." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include jsPDF Library for generating PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Include html2canvas for converting HTML to image for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 900px; /* Wider card for form and preview layout */
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Delivery Note Generator --- */
+        .generator-layout { display: flex; gap: 2rem; }
+        .generator-form { flex: 1; min-width: 300px; max-width: 400px; display: flex; flex-direction: column; gap: 1rem; }
+        .generator-form .input-group { margin-bottom: 0.5rem; }
+        .generator-form label { font-size: 0.9em; font-weight: 500; display: block; margin-bottom: 0.2rem; }
+        .generator-form input, .generator-form textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg); color: var(--text); }
+        .generator-form textarea { min-height: 80px; }
+
+        /* Item List Table Styles */
+        .item-list-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .item-list-table th, .item-list-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; font-size: 0.9em; }
+        .item-list-table th { background: var(--bg); }
+        .item-list-table input { width: 100%; box-sizing: border-box; padding: 4px; border: 1px solid var(--border-color); background: var(--card); color: var(--text); }
+        .remove-item-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2em; }
+
+        /* Document Preview Styles */
+        .generator-preview { flex: 1; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
+        .document-preview { background-color: white; color: black; padding: 2rem; border-radius: 6px; min-height: 400px; font-family: Arial, sans-serif; }
+        .preview-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+        .preview-sender-info, .preview-recipient-info { font-size: 0.9em; line-height: 1.4; }
+        .preview-items-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .preview-items-table th, .preview-items-table td { border: 1px solid #ddd; padding: 8px; font-size: 0.8em; }
+        .preview-totals-summary { margin-top: 1rem; display: flex; flex-direction: column; align-items: flex-end; }
+        .preview-total-row { display: flex; justify-content: space-between; width: 200px; font-size: 0.9em; margin-bottom: 0.2rem; }
+        .preview-grand-total { font-size: 1em; font-weight: bold; margin-top: 0.5rem; }
+        .preview-signature { margin-top: 3rem; text-align: right; font-size: 0.9em; }
+        .preview-document-type { font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; }
+
+        .export-controls { margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+
+        @media (max-width: 900px) {
+            .generator-layout { flex-direction: column; }
+            .generator-form { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>📝 Delivery Note / Challan Generator</h1>
+                <p class="tool-desc">Create customizable delivery notes, challans, or basic invoices. Fill out the form below and export as PDF or image.</p>
+            </header>
+
+            <div class="generator-layout">
+                <div class="generator-form">
+                    <!-- Sender Details -->
+                    <h3 style="margin-top:0;">Document Details</h3>
+                    <div class="input-group">
+                        <label for="docType">Document Type:</label>
+                        <select id="docType" class="tool-input">
+                            <option value="Delivery Note">Delivery Note</option>
+                            <option value="Challan">Challan</option>
+                            <option value="Invoice">Invoice</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="senderName">Sender Name:</label>
+                        <input type="text" id="senderName" value="Tulvaa Solutions" class="tool-input">
+                    </div>
+                    <div class="input-group">
+                        <label for="senderAddress">Sender Address:</label>
+                        <textarea id="senderAddress" class="tool-input">123 Main Street, New Delhi, India</textarea>
+                    </div>
+
+                    <!-- Recipient Details -->
+                    <h3 style="margin-top:1rem;">Recipient Details</h3>
+                    <div class="input-group">
+                        <label for="recipientName">Recipient Name:</label>
+                        <input type="text" id="recipientName" placeholder="Recipient's Name" class="tool-input">
+                    </div>
+                    <div class="input-group">
+                        <label for="recipientAddress">Recipient Address:</label>
+                        <textarea id="recipientAddress" placeholder="Recipient's Address" class="tool-input"></textarea>
+                    </div>
+
+                    <!-- Items List -->
+                    <h3 style="margin-top:1rem;">Items List</h3>
+                    <table class="item-list-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th style="width: 20%;">Quantity</th>
+                                <th style="width: 20%;">Unit Price</th>
+                                <th style="width: 5%; text-align: right;"></th> <!-- Delete button column -->
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            <!-- Items will be generated here -->
+                        </tbody>
+                    </table>
+                    <button class="btn" id="addItemBtn" style="margin-top: 0.5rem;">Add Item</button>
+
+                    <!-- Notes and Totals -->
+                    <h3 style="margin-top:1rem;">Notes & Other Info</h3>
+                    <div class="input-group">
+                        <label for="notes">Notes:</label>
+                        <textarea id="notes" class="tool-input"></textarea>
+                    </div>
+                </div>
+
+                <div class="generator-preview">
+                    <h3 style="text-align: center;">Document Preview</h3>
+                    <div class="document-preview" id="previewContainer">
+                        <!-- Preview content will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="export-controls">
+                <button class="btn" id="exportPdfBtn">Export as PDF</button>
+                <button class="btn" id="exportImageBtn">Export as Image (PNG)</button>
+                <button class="btn" id="clearFormBtn">Clear Form</button> <!-- NEW CLEAR BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Fill out the sender and recipient details in the left form.</li>
+                <li>Add items to the list by clicking "Add Item". Enter description, quantity, and unit price. Use the delete icon to remove items.</li>
+                <li>See a live preview of the document on the right.</li>
+                <li>Click "Export as PDF" or "Export as Image" to save the document locally.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const docTypeSelect = document.getElementById('docType');
+            const senderNameInput = document.getElementById('senderName');
+            const senderAddressTextarea = document.getElementById('senderAddress');
+            const recipientNameInput = document.getElementById('recipientName');
+            const recipientAddressTextarea = document.getElementById('recipientAddress');
+            const itemsBody = document.getElementById('itemsBody');
+            const addItemBtn = document.getElementById('addItemBtn');
+            const notesTextarea = document.getElementById('notes');
+            const previewContainer = document.getElementById('previewContainer');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            const exportImageBtn = document.getElementById('exportImageBtn');
+            const clearFormBtn = document.getElementById('clearFormBtn'); // NEW
+
+            // --- Item management ---
+            let itemCounter = 0;
+
+            function addItem() {
+                itemCounter++;
+                const newRow = itemsBody.insertRow();
+                newRow.dataset.id = itemCounter; // Assign unique ID for deletion
+                newRow.innerHTML = `
+                    <td><input type="text" data-field="description" value="Item ${itemCounter}" class="tool-input"></td>
+                    <td><input type="number" data-field="quantity" value="1" min="1" class="tool-input"></td>
+                    <td><input type="number" data-field="price" value="100" min="0" class="tool-input"></td>
+                    <td style="text-align: right;"><button class="remove-item-btn" data-id="${itemCounter}">&#x2715;</button></td>
+                `;
+                newRow.querySelectorAll('input').forEach(input => input.addEventListener('input', updatePreview));
+            }
+
+            // --- Remove Item Function ---
+            itemsBody.addEventListener('click', (event) => {
+                if (event.target.classList.contains('remove-item-btn')) {
+                    const rowToRemove = event.target.closest('tr');
+                    if (rowToRemove) {
+                        rowToRemove.remove();
+                        updatePreview();
+                    }
+                }
+            });
+
+            // --- Preview generation ---
+            function updatePreview() {
+                const docType = docTypeSelect.value;
+                const senderName = senderNameInput.value;
+                const senderAddress = senderAddressTextarea.value;
+                const recipientName = recipientNameInput.value;
+                const recipientAddress = recipientAddressTextarea.value;
+                const notes = notesTextarea.value;
+
+                // Gather item data from table inputs
+                const items = Array.from(itemsBody.querySelectorAll('tr')).map(row => ({
+                    description: row.querySelector('[data-field="description"]').value,
+                    quantity: parseFloat(row.querySelector('[data-field="quantity"]').value) || 0,
+                    price: parseFloat(row.querySelector('[data-field="price"]').value) || 0,
+                }));
+
+                // Calculate total
+                const subtotal = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+                // --- HTML structure for preview ---
+                let itemsHtml = items.map(item => `
+                    <tr>
+                        <td>${item.description}</td>
+                        <td style="text-align: right;">${item.quantity}</td>
+                        <td style="text-align: right;">${item.price.toFixed(2)}</td>
+                        <td style="text-align: right;">${(item.quantity * item.price).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+                previewContainer.innerHTML = `
+                    <div class="preview-document-type">${docType}</div>
+                    <div class="preview-header">
+                        <div class="preview-sender-info">
+                            <strong>From:</strong><br>
+                            ${senderName}<br>
+                            ${senderAddress.replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="preview-recipient-info">
+                            <strong>To:</strong><br>
+                            ${recipientName}<br>
+                            ${recipientAddress.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    <table class="preview-items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th style="width: 15%;">Qty</th>
+                                <th style="width: 15%;">Price</th>
+                                <th style="width: 15%;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                    <div class="preview-totals-summary">
+                        <div class="preview-total-row">
+                            <span>Subtotal:</span>
+                            <span>${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="preview-total-row">
+                            <span>Tax (0%):</span> <!-- You can add a tax input later -->
+                            <span>0.00</span>
+                        </div>
+                        <div class="preview-grand-total">
+                            <span>Grand Total:</span>
+                            <span>${subtotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    ${notes ? `<div style="margin-top: 1rem; font-size: 0.9em;"><strong>Notes:</strong> ${notes.replace(/\n/g, '<br>')}</div>` : ''}
+                    <div class="preview-signature">
+                        Authorised Signature
+                    </div>
+                `;
+            }
+
+            // --- Export Functions ---
+            function exportDocument(format) {
+                const docName = `${docTypeSelect.value.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`;
+                const elementToExport = previewContainer;
+
+                // Disable buttons during export to prevent double clicks and ensure correct state
+                exportPdfBtn.disabled = true;
+                exportImageBtn.disabled = true;
+
+                if (format === 'pdf') {
+                    // Generate PDF using html2canvas and jspdf
+                    html2canvas(elementToExport, { scale: 2, allowTaint: true, useCORS: true }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for units, 'a4' for size
+                        const imgWidth = 210; // A4 width in mm
+                        const pageHeight = 295; // A4 height in mm
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        let heightLeft = imgHeight;
+                        let position = 0;
+
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+
+                        while (heightLeft >= 0) {
+                            position = heightLeft - imgHeight;
+                            pdf.addPage();
+                            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                            heightLeft -= pageHeight;
+                        }
+
+                        pdf.save(`${docName}.pdf`);
+                        exportPdfBtn.disabled = false;
+                        exportImageBtn.disabled = false;
+                    });
+                } else if (format === 'png') {
+                    // Generate PNG using html2canvas and download link
+                    html2canvas(elementToExport, { scale: 2, allowTaint: true, useCORS: true }).then(canvas => {
+                        const dataUrl = canvas.toDataURL('image/png');
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = `${docName}.png`;
+                        a.click();
+                        exportPdfBtn.disabled = false;
+                        exportImageBtn.disabled = false;
+                    });
+                }
+            }
+
+            // --- Reset Form Function ---
+            function clearForm() {
+                // Reset form inputs to default values
+                senderNameInput.value = 'Tulvaa Solutions';
+                senderAddressTextarea.value = '123 Main Street, New Delhi, India';
+                recipientNameInput.value = '';
+                recipientAddressTextarea.value = '';
+                notesTextarea.value = '';
+                docTypeSelect.value = 'Delivery Note';
+
+                // Clear item list and add one default item
+                itemsBody.innerHTML = '';
+                itemCounter = 0;
+                addItem();
+                updatePreview();
+            }
+
+            // --- Event Listeners ---
+            addItemBtn.addEventListener('click', addItem);
+            exportPdfBtn.addEventListener('click', () => exportDocument('pdf'));
+            exportImageBtn.addEventListener('click', () => exportDocument('png'));
+            clearFormBtn.addEventListener('click', clearForm); // NEW Event Listener
+
+            // Live updates on form input changes
+            [docTypeSelect, senderNameInput, senderAddressTextarea, recipientNameInput, recipientAddressTextarea, notesTextarea].forEach(el => el.addEventListener('input', updatePreview));
+
+            // Initial setup
+            addItem(); // Add a starting item row
+            updatePreview(); // Initial preview rendering
+        });
+    </script>
+</body>
+</html>

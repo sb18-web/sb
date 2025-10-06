@@ -1,0 +1,353 @@
+<!-- START OF FILE: tools/image-compressor.html (Upgraded with Privacy Gadget) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Free Online Image Compressor | Reduce JPG/PNG File Size | Tulvaa</title>
+    <meta name="description" content="Reduce the file size of your images (JPG/PNG) instantly without losing quality. Our privacy-first compressor runs directly in your browser without uploading files." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Image Compressor --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .compressor-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .quality-slider-group {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-direction: column; /* Stack elements vertically on mobile */
+        }
+        .quality-slider-group label { margin-bottom: 0.5rem; font-weight: 500; }
+        .quality-slider-group input { width: 100%; max-width: 300px; }
+
+        .image-preview-container {
+            margin-top: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--bg);
+        }
+        .image-preview { max-width: 100%; height: auto; border-radius: 6px; }
+        .result-container { margin-top: 1rem; display: flex; flex-direction: column; align-items: center; }
+        .result-container .btn { margin: 0.5rem; }
+        .size-info { margin-top: 0.5rem; color: #64748b; font-size: 0.9em; }
+
+        /* How To Section styles (inherited from style.css) */
+        .how-to { max-width: 700px; margin-top: 2rem; }
+
+        /* Loading Spinner */
+        .loading-indicator {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🗜️ Image Compressor</h1>
+                <p class="tool-desc">Reduce the file size of your images by adjusting the quality. All processing is private and happens on your device.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgInput" accept="image/png,image/jpeg">
+                <div class="drop-hint">Supported formats: JPG, PNG</div>
+            </div>
+
+            <div class="compressor-options" id="compressorOptions" style="display: none;">
+                <div class="quality-slider-group">
+                    <label for="qualitySlider">Quality: <span id="qualityValue">80%</span></label>
+                    <input type="range" id="qualitySlider" min="0.1" max="1.0" step="0.1" value="0.8">
+                </div>
+                <!-- Add live size info here for UX -->
+                <p class="size-info">Original Size: <span id="originalSize">0 KB</span></p>
+                <p class="size-info">Estimated Compressed Size: <span id="estimatedSize">0 KB</span></p>
+                <button class="btn" id="goBtn">Compress Image</button>
+            </div>
+
+            <!-- Previews and results area -->
+            <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <h3>Preview and Results:</h3>
+                <div style="margin-top: 1rem;">
+                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview">
+                </div>
+            </div>
+
+            <!-- Loading indicator -->
+            <div class="loading-indicator" id="loadingIndicator" style="display:none;"></div>
+
+            <!-- Download and Share buttons -->
+            <div class="result-container" id="resultContainer" style="display: none;">
+                <a class="btn" id="downloadLink" href="#" download="compressed.jpg" style="margin-top: 1rem;">⬇️ Download Compressed Image</a>
+                <button class="btn" id="shareBtn" style="margin-left: 0.5rem;">Share Image</button>
+                <button class="btn" id="clearBtn" style="margin-top: 1rem;">Clear</button> <!-- NEW CLEAR BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your image file (JPG or PNG).</li>
+                <li>Adjust the quality slider to control the compression level. The estimated file size will update live.</li>
+                <li>Click "Compress Image" to process.</li>
+                <li>View the original and compressed file sizes, then download or share the result.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgInput');
+            const compressorOptions = document.getElementById('compressorOptions');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            const qualitySlider = document.getElementById('qualitySlider');
+            const qualityValue = document.getElementById('qualityValue');
+            const goBtn = document.getElementById('goBtn');
+            const downloadLink = document.getElementById('downloadLink');
+            const shareBtn = document.getElementById('shareBtn');
+            const originalSizeSpan = document.getElementById('originalSize');
+            const estimatedSizeSpan = document.getElementById('estimatedSize'); // New element for live update
+            const clearBtn = document.getElementById('clearBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator'); // New loading indicator
+
+            let currentFile = null;
+            let currentBlob = null;
+
+            // --- UI Reset Function ---
+            function resetUI() {
+                dropZone.style.display = 'flex';
+                imagePreviewContainer.style.display = 'none';
+                compressorOptions.style.display = 'none';
+                resultContainer.style.display = 'none';
+                loadingIndicator.style.display = 'none';
+                imgInput.value = '';
+                currentFile = null;
+                currentBlob = null;
+                originalSizeSpan.textContent = '0 KB';
+                estimatedSizeSpan.textContent = '0 KB';
+                qualitySlider.value = 0.8; // Reset slider value
+                qualityValue.textContent = '80%';
+                if(window.updatePrivacyGadget) window.updatePrivacyGadget('secure'); // Reset gadget state
+            }
+            clearBtn.addEventListener('click', resetUI);
+
+            // --- Image Handling ---
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+                currentFile = file;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    compressorOptions.style.display = 'flex'; // Show options after file selected
+                    imagePreviewContainer.style.display = 'block';
+                    dropZone.style.display = 'none'; // Hide dropzone after file is selected
+                    originalSizeSpan.textContent = formatBytes(file.size);
+                    estimatedSizeSpan.textContent = formatBytes(file.size * 0.8); // Initial estimate based on default quality 0.8
+                    resultContainer.style.display = 'none'; // Hide previous results
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // --- Compression Logic ---
+            goBtn.addEventListener('click', performCompression);
+
+            // --- Live Compression Preview (NEW FEATURE) ---
+            async function updateEstimatedSize() {
+                if (!currentFile) return;
+
+                const outputQuality = parseFloat(qualitySlider.value);
+                // Simple estimation based on file size ratio (not perfectly accurate but close enough for UX)
+                // New size = Original Size * Quality.
+                const newSize = currentFile.size * outputQuality;
+                estimatedSizeSpan.textContent = formatBytes(newSize);
+            }
+
+            // Update quality value display and estimated size on slider input
+            qualitySlider.addEventListener('input', () => {
+                qualityValue.textContent = Math.round(qualitySlider.value * 100) + '%';
+                updateEstimatedSize();
+            });
+
+            // Compression logic function (called on button click)
+            async function performCompression() {
+                if (!currentFile) return;
+
+                // --- UI State: Start Compression ---
+                goBtn.disabled = true;
+                goBtn.textContent = 'Compressing...';
+                loadingIndicator.style.display = 'block';
+                if(window.updatePrivacyGadget) window.updatePrivacyGadget('processing'); // UPDATE GADGET
+
+                // Read file data for resizing via canvas
+                const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(currentFile); });
+                const img = new Image();
+                img.src = dataUrl;
+                await new Promise(r => img.onload = r);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+
+                const outputQuality = parseFloat(qualitySlider.value);
+                const outputMimeType = 'image/jpeg'; // Force conversion to JPG for compression
+
+                canvas.toBlob((blob) => {
+                    // --- UI State: End Compression ---
+                    const compressedSize = blob.size;
+                    estimatedSizeSpan.textContent = formatBytes(compressedSize); // Update with actual size
+                    currentBlob = blob;
+                    const compressedDataUrl = URL.createObjectURL(blob);
+                    downloadLink.href = compressedDataUrl;
+                    downloadLink.download = `compressed_${outputQuality * 100}.jpg`;
+                    resultContainer.style.display = 'flex';
+
+                    goBtn.disabled = false;
+                    goBtn.textContent = 'Compress Image';
+                    loadingIndicator.style.display = 'none';
+                    if(window.updatePrivacyGadget) window.updatePrivacyGadget('secure'); // UPDATE GADGET
+                }, outputMimeType, outputQuality);
+            }
+
+            // --- Web Share API Logic ---
+            shareBtn.addEventListener('click', async () => {
+                if (!currentBlob) {
+                    alert('Please compress the image first.');
+                    return;
+                }
+                if (navigator.share) {
+                    const file = new File([currentBlob], downloadLink.download, { type: currentBlob.type });
+                    navigator.share({
+                        files: [file],
+                        title: 'Compressed Image',
+                        text: 'Sharing my compressed image from Tulvaa!'
+                    }).catch(error => console.error('Error sharing:', error));
+                } else {
+                    alert('Web Share API not supported in this browser. Please use the download button.');
+                }
+            });
+
+            // --- Utility function to format file size ---
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+</body>
+</html>

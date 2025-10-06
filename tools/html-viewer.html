@@ -1,0 +1,157 @@
+<!-- START OF FILE: tools/html-viewer.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>HTML Viewer and Code Sandbox | Live Preview Online | Tulvaa</title>
+    <meta name="description" content="Paste HTML code to instantly view a live preview in a safe sandbox environment. Test and debug HTML, CSS, and JavaScript directly in your browser. Privacy-first local processing." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 900px; /* Wider card for code/preview */
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for HTML Viewer --- */
+        .viewer-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .viewer-layout textarea {
+            min-height: 250px;
+            font-family: monospace; /* Use a monospaced font for code */
+            font-size: 0.95em;
+        }
+        .viewer-layout iframe {
+            width: 100%;
+            min-height: 300px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white; /* Ensure iframe background is white by default for better rendering */
+        }
+        .tool-controls {
+            display: flex;
+            justify-content: flex-start;
+            gap: 1rem;
+        }
+
+        /* Mobile adjustment for code area */
+        @media (max-width: 600px) {
+            .viewer-layout iframe { min-height: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>💻 HTML Viewer / Sandbox</h1>
+                <p class="tool-desc">Paste HTML, CSS, or JavaScript code below and see the live result immediately. Everything runs locally in your browser.</p>
+            </header>
+
+            <div class="viewer-layout">
+                <textarea id="code" placeholder="Write HTML/CSS/JS code here..."></textarea>
+                <div class="tool-controls">
+                    <button class="btn" id="clearBtn">Clear Code</button>
+                    <button class="btn" id="copyBtn">Copy Code</button> <!-- NEW Copy button -->
+                </div>
+                <h3>Live Preview:</h3>
+                <iframe id="out"></iframe>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste your HTML, CSS, or JavaScript code into the text area above.</li>
+                <li>The live preview will update automatically as you type.</li>
+                <li>Click "Clear Code" to clear both the input and output areas.</li>
+                <li>Click "Copy Code" to copy the text from the input area.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- HTML Viewer Tool Specific Logic ---
+            const codeInput = document.getElementById('code');
+            const outputIframe = document.getElementById('out');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // Function to render code in iframe
+            function renderCode() {
+                outputIframe.srcdoc = codeInput.value;
+            }
+
+            // Live update on input change
+            codeInput.addEventListener('input', renderCode);
+
+            // Clear button functionality
+            clearBtn.addEventListener('click', () => {
+                codeInput.value = '';
+                outputIframe.srcdoc = '';
+            });
+
+            // Copy button functionality (NEW)
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(codeInput.value)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => copyBtn.textContent = 'Copy Code', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Copy failed:', err);
+                        alert('Failed to copy text.');
+                    });
+            });
+
+            // Initial render on load
+            renderCode(); // Render initial content (if any)
+        });
+    </script>
+</body>
+</html>

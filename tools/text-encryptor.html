@@ -1,0 +1,250 @@
+<!-- START OF FILE: tools/text-encryptor.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Text Encryptor Online | Encrypt and Decrypt Messages | Tulvaa</title>
+    <meta name="description" content="Encrypt or decrypt text messages locally in your browser using a secure AES-GCM algorithm with a custom password. No data leaves your device. Secure and private messaging." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include crypto-js library for encryption (Local processing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Text Encryptor --- */
+        .encryptor-layout { display: flex; flex-direction: column; gap: 1rem; }
+        .encryptor-layout textarea { min-height: 150px; }
+        .encryptor-controls { display: flex; gap: 1rem; margin-top: 1rem; }
+        .output-container { margin-top: 1.5rem; position: relative; }
+        .output-text {
+            word-wrap: break-word;
+            min-height: 100px;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 0.95em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        /* New: Password input container for toggle button */
+        .password-input-container { position: relative; }
+        .password-input-container input { padding-right: 40px; }
+        .toggle-password-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🔐 Text Encryptor / Decryptor</h1>
+                <p class="tool-desc">Encrypt or decrypt text messages locally in your browser using a secure AES-GCM algorithm with a custom password.</p>
+            </header>
+
+            <div class="encryptor-layout">
+                <textarea id="txtInput" placeholder="Enter text to encrypt or paste encrypted message to decrypt..." class="tool-input"></textarea>
+                <div class="password-input-container"> <!-- New container for toggle button -->
+                    <input type="password" id="passwordInput" placeholder="Enter Passphrase" class="tool-input">
+                    <button type="button" class="toggle-password-btn" id="togglePasswordBtn">👁️</button>
+                </div>
+            </div>
+            
+            <div class="tool-controls">
+                <button class="btn" id="encryptBtn">Encrypt</button>
+                <button class="btn" id="decryptBtn">Decrypt</button>
+                <button class="btn" id="clearBtn">Clear</button>
+            </div>
+
+            <div class="output-container">
+                <div id="outputText" class="output-text"></div>
+                <button class="copy-button" id="copyBtn" style="display: none;">Copy</button>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Enter the text you want to encrypt in the top box.</li>
+                <li>Enter a strong passphrase in the password field.</li>
+                <li>Click "Encrypt" to generate the encrypted text.</li>
+                <li>To decrypt, paste the encrypted text into the top box, re-enter the original passphrase, and click "Decrypt".</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <!-- Include crypto-js library for encryption (Local processing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const txtInput = document.getElementById('txtInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const encryptBtn = document.getElementById('encryptBtn');
+            const decryptBtn = document.getElementById('decryptBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const outputText = document.getElementById('outputText');
+            const copyBtn = document.getElementById('copyBtn');
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn'); // NEW element
+
+            // --- Encryption/Decryption Logic (using CryptoJS) ---
+            function encryptText() {
+                const text = txtInput.value;
+                const passphrase = passwordInput.value;
+
+                if (!text || !passphrase) {
+                    outputText.textContent = 'Error: Please enter both text and a passphrase.';
+                    outputText.style.color = 'red';
+                    copyBtn.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const encrypted = CryptoJS.AES.encrypt(text, passphrase);
+                    outputText.textContent = encrypted.toString();
+                    outputText.style.color = 'var(--text)';
+                    copyBtn.style.display = 'inline-block';
+                } catch (e) {
+                    outputText.textContent = 'Encryption failed.';
+                    outputText.style.color = 'red';
+                    copyBtn.style.display = 'none';
+                }
+            }
+
+            function decryptText() {
+                const encryptedText = txtInput.value;
+                const passphrase = passwordInput.value;
+
+                if (!encryptedText || !passphrase) {
+                    outputText.textContent = 'Error: Please enter both encrypted text and a passphrase.';
+                    outputText.style.color = 'red';
+                    copyBtn.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const decryptedBytes = CryptoJS.AES.decrypt(encryptedText, passphrase);
+                    const decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+                    if (!decryptedText) {
+                        outputText.textContent = 'Decryption failed: Invalid passphrase or corrupted data.';
+                        outputText.style.color = 'red';
+                        copyBtn.style.display = 'none';
+                    } else {
+                        outputText.textContent = decryptedText;
+                        outputText.style.color = 'var(--text)';
+                        copyBtn.style.display = 'inline-block';
+                    }
+                } catch (e) {
+                    outputText.textContent = 'Decryption failed: Invalid passphrase or corrupted data.';
+                    outputText.style.color = 'red';
+                    copyBtn.style.display = 'none';
+                }
+            }
+
+            // --- Utility Functions ---
+            function clearFields() {
+                txtInput.value = '';
+                passwordInput.value = '';
+                outputText.textContent = '';
+                copyBtn.style.display = 'none';
+                outputText.style.color = 'var(--text)'; // Reset text color
+            }
+
+            // --- Event Listeners ---
+            encryptBtn.addEventListener('click', encryptText);
+            decryptBtn.addEventListener('click', decryptText);
+            clearBtn.addEventListener('click', clearFields);
+
+            // Copy output to clipboard
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = outputText.textContent;
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy text.');
+                    });
+            });
+
+            // Password visibility toggle (NEW feature)
+            togglePasswordBtn.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    togglePasswordBtn.textContent = '🔒'; // Lock icon for hide
+                } else {
+                    passwordInput.type = 'password';
+                    togglePasswordBtn.textContent = '👁️'; // Eye icon for show
+                }
+            });
+        });
+    </script>
+</body>
+</html>

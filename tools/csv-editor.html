@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Editor | Tulvaa</title>
+    <meta name="description" content="An in-browser CSV editor to view, sort, and edit data. No server upload required for full privacy." />
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 900px; /* Wider card for data grid */
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for CSV Editor --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .csv-table-container {
+            overflow: auto;
+            max-height: 500px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+        .csv-table th, .csv-table td {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+        }
+        .csv-table th {
+            background: var(--bg);
+            text-align: left;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            user-select: none;
+        }
+        .csv-table tr:nth-child(even) {
+            background: var(--bg);
+        }
+        .csv-table tr:hover {
+            background: #f1f5f9;
+        }
+        [data-theme="dark"] .csv-table th { background: #334155; }
+        [data-theme="dark"] .csv-table tr:nth-child(even) { background: #334155; }
+        [data-theme="dark"] .csv-table tr:hover { background: #475569; }
+
+        .csv-controls { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .csv-controls input { width: 100px; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <a href="../index.html" class="logo">Tulvaa</a>
+        <button class="hamburger-btn" id="hamburgerBtn">☰</button>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="../index.html#category-image">Image Tools</a></li>
+                <li><a href="../index.html#category-text">Text Tools</a></li>
+                <li><li><a href="../blog.html">Blog</a></li></li>
+            </ul>
+            <button class="search-btn" id="searchBtn" aria-label="Search"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+            <button class="all-tools-btn" id="allToolsBtn">All Tools <span class="arrow">▼</span></button>
+            <button id="theme-toggle" class="theme-btn" aria-label="Toggle dark mode">🌙</button>
+        </nav>
+    </header>
+
+    <div class="mega-menu" id="allToolsMenu">
+        <!-- Mega menu content (full menu) -->
+        <div class="mega-menu-grid">
+            <div class="mega-menu-category">
+                <h3>Image Tools</h3>
+                <ul>
+                    <li><a href="image-to-pdf.html"><span class="tool-icon">📄</span> Image to PDF</a></li>
+                    <li><a href="image-compressor.html"><span class="tool-icon">🗜️</span> Image Compressor</a></li>
+                    <li><a href="image-resizer.html"><span class="tool-icon">📏</span> Image Resizer</a></li>
+                    <li><a href="convert-png-jpg.html"><span class="tool-icon">🖼️</span> PNG <> JPG</a></li>
+                    <li><a href="steganography.html"><span class="tool-icon">🕵️</span> Steganography</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Text & Writing</h3>
+                <ul>
+                    <li><a href="text-diff.html"><span class="tool-icon">🔍</span> Text Diff</a></li>
+                    <li><a href="text-encryptor.html"><span class="tool-icon">🔐</span> Text Encryptor</a></li>
+                    <li><a href="text-to-pdf.html"><span class="tool-icon">📄</span> Text to PDF</a></li>
+                    <li><a href="word-counter.html"><span class="tool-icon">✏️</span> Word Counter</a></li>
+                    <li><a href="line-operations.html"><span class="tool-icon">🔠</span> Line Operations</a></li>
+                    <li><a href="text-cleaner.html"><span class="tool-icon">🧹</span> Text Cleaner</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Converters</h3>
+                <ul>
+                    <li><a href="unit-converter.html"><span class="tool-icon">⚖️</span> Unit Converter</a></li>
+                    <li><a href="document-scanner.html"><span class="tool-icon">📑</span> Document Scanner</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Encoder/Decoder</h3>
+                <ul>
+                    <li><a href="url-encoder.html"><span class="tool-icon">🔗</span> URL Encoder</a></li>
+                    <li><a href="hash-generator.html"><span class="tool-icon">🛡️</span> Hash Generator</a></li>
+                    <li><a href="password-generator.html"><span class="tool-icon">🔑</span> Password Generator</a></li>
+                    <li><a href="qr-generator.html"><span class="tool-icon">📱</span> QR Generator</a></li>
+                </ul>
+            </div>
+             <div class="mega-menu-category">
+                <h3>AI Tools</h3>
+                <ul>
+                    <li><a href="image-to-prompt.html"><span class="tool-icon">🤖</span> Image to Prompt</a></li>
+                    <li><a href="json-formatter.html"><span class="tool-icon">🧩</span> JSON Formatter</a></li>
+                    <li><a href="html-viewer.html"><span class="tool-icon">💻</span> HTML Viewer</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>📊 CSV Editor & Data Viewer</h1>
+                <p class="tool-desc">View, sort, and edit CSV or TSV files in a structured data grid. All processing is done in your browser.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add CSV file or drag & drop</span>
+                <input type="file" id="csvInput" accept=".csv, .tsv, text/csv, text/tab-separated-values">
+                <div class="drop-hint">Supported formats: CSV, TSV</div>
+            </div>
+
+            <div class="csv-table-container" id="tableContainer" style="display: none;">
+                <table class="csv-table" id="dataTable"></table>
+            </div>
+
+            <div class="csv-controls" id="controls" style="display: none;">
+                <button class="btn" id="exportCsvBtn">Export CSV</button>
+                <button class="btn" id="exportJsonBtn">Export JSON</button>
+                <button class="btn" id="clearBtn">Clear Data</button>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your CSV/TSV file into the drop zone.</li>
+                <li>The data will appear in a sortable grid below. Click on column headers to sort.</li>
+                <li>Make changes directly in the cells of the grid (Note: this is a client-side implementation, changes are not automatically saved to the original file).</li>
+                <li>Export the modified data as a new CSV or JSON file.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <footer class="main-footer">
+        <ul class="footer-links">
+            <li><a href="../about.html">About Us</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+            <li><a href="../privacy.html">Privacy Policy</a></li>
+            <li><a href="../disclaimer.html">Disclaimer</a></li>
+        </ul>
+        <p class="footer-copyright">&copy; 2025 Tulvaa. All Tools Run in Your Browser.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Common Navigation and PWA Logic (keep as before) ---
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const allToolsMenu = document.getElementById('allToolsMenu');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            // --- Navigation Logic ---
+            hamburgerBtn.addEventListener('click', () => { allToolsMenu.classList.toggle('show'); document.body.classList.toggle('menu-open'); });
+            document.addEventListener('click', (event) => {
+                if (window.innerWidth > 900) {
+                    if (allToolsMenu.classList.contains('show') && !allToolsMenu.contains(event.target) && !event.target.closest('.main-nav')) { allToolsMenu.classList.remove('show'); }
+                } else {
+                    if (allToolsMenu.classList.contains('show') && !allToolsMenu.contains(event.target) && event.target !== hamburgerBtn) { allToolsMenu.classList.remove('show'); document.body.classList.remove('menu-open'); }
+                }
+            });
+
+            // --- CSV Editor Tool Specific Logic ---
+            const dropZone = document.getElementById('dropZone');
+            const csvInput = document.getElementById('csvInput');
+            const tableContainer = document.getElementById('tableContainer');
+            const dataTable = document.getElementById('dataTable');
+            const controls = document.getElementById('controls');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const exportJsonBtn = document.getElementById('exportJsonBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            let currentData = [];
+            let currentHeaders = [];
+            let sortDirection = {};
+
+            // Helper function to parse CSV text into data array
+            function parseCSV(text) {
+                const lines = text.split('\n');
+                const result = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        result.push(line.split(',')); // Simple split, handle quotes more robustly for production use
+                    }
+                }
+                return result;
+            }
+
+            // Render data to the HTML table
+            function renderTable(data) {
+                if (data.length === 0) return;
+
+                // Extract headers and body data
+                currentHeaders = data[0];
+                const bodyData = data.slice(1);
+
+                // Clear existing table content
+                dataTable.innerHTML = '';
+
+                // Create table header
+                const headerRow = dataTable.insertRow();
+                currentHeaders.forEach((headerText, index) => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+                    th.dataset.columnIndex = index;
+                    th.addEventListener('click', () => sortTable(index));
+                    headerRow.appendChild(th);
+                });
+
+                // Create table body
+                bodyData.forEach(rowData => {
+                    const row = dataTable.insertRow();
+                    rowData.forEach((cellData, index) => {
+                        const cell = row.insertCell();
+                        cell.textContent = cellData;
+                        cell.contentEditable = true; // Make cells editable
+                    });
+                });
+
+                tableContainer.style.display = 'block';
+                controls.style.display = 'flex';
+            }
+
+            // Sort table data by column index
+            function sortTable(columnIndex) {
+                const direction = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+                sortDirection[columnIndex] = direction;
+
+                const bodyData = Array.from(dataTable.rows).slice(1).map(row => Array.from(row.cells).map(cell => cell.textContent));
+
+                bodyData.sort((rowA, rowB) => {
+                    const valA = rowA[columnIndex];
+                    const valB = rowB[columnIndex];
+                    if (direction === 'asc') {
+                        return isNaN(valA) ? valA.localeCompare(valB) : parseFloat(valA) - parseFloat(valB);
+                    } else {
+                        return isNaN(valA) ? valB.localeCompare(valA) : parseFloat(valB) - parseFloat(valA);
+                    }
+                });
+
+                // Re-render table with sorted data
+                const sortedData = [currentHeaders, ...bodyData];
+                renderTable(sortedData);
+            }
+
+            // Convert current table data to CSV format
+            function exportToCSV() {
+                const dataRows = Array.from(dataTable.rows);
+                const csvContent = [];
+                dataRows.forEach(row => {
+                    const rowData = Array.from(row.cells).map(cell => `"${cell.textContent}"`);
+                    csvContent.push(rowData.join(','));
+                });
+                return csvContent.join('\n');
+            }
+
+            // Convert current table data to JSON format
+            function exportToJSON() {
+                const dataRows = Array.from(dataTable.rows);
+                const headers = Array.from(dataRows[0].cells).map(cell => cell.textContent);
+                const jsonContent = [];
+                for (let i = 1; i < dataRows.length; i++) {
+                    const rowData = Array.from(dataRows[i].cells).map(cell => cell.textContent);
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = rowData[index];
+                    });
+                    jsonContent.push(obj);
+                }
+                return JSON.stringify(jsonContent, null, 2);
+            }
+
+            // Event listener for file upload/drag and drop
+            dropZone.addEventListener('click', () => csvInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            csvInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const parsedData = parseCSV(reader.result);
+                    if (parsedData.length > 0) {
+                        renderTable(parsedData);
+                        dropZone.style.display = 'none';
+                    } else {
+                        alert('Error processing file or file is empty.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // Export buttons event listeners
+            exportCsvBtn.addEventListener('click', () => {
+                const csvData = exportToCSV();
+                const blob = new Blob([csvData], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'edited_data.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            exportJsonBtn.addEventListener('click', () => {
+                const jsonData = exportToJSON();
+                const blob = new Blob([jsonData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'edited_data.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                dataTable.innerHTML = '';
+                tableContainer.style.display = 'none';
+                controls.style.display = 'none';
+                dropZone.style.display = 'flex';
+            });
+        });
+    </script>
+</body>
+</html>```
+
+---
+
+### File 2: `tools/image-palette-extractor.html`
+
+This tool allows users to upload an image and generates a color palette based on its dominant colors.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Image Palette Extractor | Tulvaa</title>
+    <meta name="description" content="Extract the dominant color palette from any image. Analyze and get HEX codes directly in your browser. Privacy-first." />
+    <!-- END SEO OPTIMIZATION -->
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Image Palette Extractor --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .image-preview-area { margin-top: 1.5rem; text-align: center; }
+        .image-preview { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        .palette-results { margin-top: 2rem; text-align: center; }
+        .color-palette-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1rem; }
+        .color-item { width: 80px; height: 80px; border-radius: 8px; position: relative; cursor: pointer; border: 1px solid #ddd; }
+        .color-label { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.5); color: white; font-size: 0.8em; padding: 3px 0; border-radius: 0 0 8px 8px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <a href="../index.html" class="logo">Tulvaa</a>
+        <button class="hamburger-btn" id="hamburgerBtn">☰</button>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="../index.html#category-image">Image Tools</a></li>
+                <li><a href="../index.html#category-text">Text Tools</a></li>
+                <li><a href="../blog.html">Blog</a></li>
+            </ul>
+            <button class="search-btn" id="searchBtn" aria-label="Search"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+            <button class="all-tools-btn" id="allToolsBtn">All Tools <span class="arrow">▼</span></button>
+            <button id="theme-toggle" class="theme-btn" aria-label="Toggle dark mode">🌙</button>
+        </nav>
+    </header>
+
+    <div class="mega-menu" id="allToolsMenu">
+        <!-- Mega menu content (full menu) -->
+        <div class="mega-menu-grid">
+            <div class="mega-menu-category">
+                <h3>Image Tools</h3>
+                <ul>
+                    <li><a href="image-to-pdf.html"><span class="tool-icon">📄</span> Image to PDF</a></li>
+                    <li><a href="image-compressor.html"><span class="tool-icon">🗜️</span> Image Compressor</a></li>
+                    <li><a href="image-resizer.html"><span class="tool-icon">📏</span> Image Resizer</a></li>
+                    <li><a href="convert-png-jpg.html"><span class="tool-icon">🖼️</span> PNG <> JPG</a></li>
+                    <li><a href="steganography.html"><span class="tool-icon">🕵️</span> Steganography</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Text & Writing</h3>
+                <ul>
+                    <li><a href="text-diff.html"><span class="tool-icon">🔍</span> Text Diff</a></li>
+                    <li><a href="text-encryptor.html"><span class="tool-icon">🔐</span> Text Encryptor</a></li>
+                    <li><a href="text-to-pdf.html"><span class="tool-icon">📄</span> Text to PDF</a></li>
+                    <li><a href="word-counter.html"><span class="tool-icon">✏️</span> Word Counter</a></li>
+                    <li><a href="line-operations.html"><span class="tool-icon">🔠</span> Line Operations</a></li>
+                    <li><a href="text-cleaner.html"><span class="tool-icon">🧹</span> Text Cleaner</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Converters</h3>
+                <ul>
+                    <li><a href="unit-converter.html"><span class="tool-icon">⚖️</span> Unit Converter</a></li>
+                    <li><a href="document-scanner.html"><span class="tool-icon">📑</span> Document Scanner</a></li>
+                </ul>
+            </div>
+            <div class="mega-menu-category">
+                <h3>Encoder/Decoder</h3>
+                <ul>
+                    <li><a href="url-encoder.html"><span class="tool-icon">🔗</span> URL Encoder</a></li>
+                    <li><a href="hash-generator.html"><span class="tool-icon">🛡️</span> Hash Generator</a></li>
+                    <li><a href="password-generator.html"><span class="tool-icon">🔑</span> Password Generator</a></li>
+                    <li><a href="qr-generator.html"><span class="tool-icon">📱</span> QR Generator</a></li>
+                </ul>
+            </div>
+             <div class="mega-menu-category">
+                <h3>AI Tools</h3>
+                <ul>
+                    <li><a href="image-to-prompt.html"><span class="tool-icon">🤖</span> Image to Prompt</a></li>
+                    <li><a href="json-formatter.html"><span class="tool-icon">🧩</span> JSON Formatter</a></li>
+                    <li><a href="html-viewer.html"><span class="tool-icon">💻</span> HTML Viewer</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🎨 Image Palette Extractor</h1>
+                <p class="tool-desc">Upload an image to identify and extract its dominant colors. Get instant HEX and RGB color codes.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgInput" accept="image/png,image/jpeg">
+                <div class="drop-hint">Supported formats: JPG, PNG</div>
+            </div>
+
+            <div class="image-preview-area" id="imagePreviewArea" style="display: none;">
+                <img id="imagePreview" class="image-preview" src="" alt="Image Preview">
+            </div>
+
+            <div class="palette-results" id="paletteResults" style="display: none;">
+                <h3>Extracted Colors:</h3>
+                <div class="color-palette-grid" id="colorPaletteGrid">
+                    <!-- Color items will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your image file (JPG or PNG) into the drop zone.</li>
+                <li>The tool will analyze the image and display the dominant colors below.</li>
+                <li>Click on a color swatch to copy its HEX code to your clipboard.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <footer class="main-footer">
+        <ul class="footer-links">
+            <li><a href="../about.html">About Us</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+            <li><a href="../privacy.html">Privacy Policy</a></li>
+            <li><a href="../disclaimer.html">Disclaimer</a></li>
+        </ul>
+        <p class="footer-copyright">&copy; 2025 Tulvaa. All Tools Run in Your Browser.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Common Navigation and PWA Logic (keep as before) ---
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const allToolsMenu = document.getElementById('allToolsMenu');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            // --- Navigation Logic ---
+            hamburgerBtn.addEventListener('click', () => { allToolsMenu.classList.toggle('show'); document.body.classList.toggle('menu-open'); });
+            document.addEventListener('click', (event) => {
+                if (window.innerWidth > 900) {
+                    if (allToolsMenu.classList.contains('show') && !allToolsMenu.contains(event.target) && !event.target.closest('.main-nav')) { allToolsMenu.classList.remove('show'); }
+                } else {
+                    if (allToolsMenu.classList.contains('show') && !allToolsMenu.contains(event.target) && event.target !== hamburgerBtn) { allToolsMenu.classList.remove('show'); document.body.classList.remove('menu-open'); }
+                }
+            });
+
+            // --- Palette Extractor Tool Specific Logic ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewArea = document.getElementById('imagePreviewArea');
+            const paletteResults = document.getElementById('paletteResults');
+            const colorPaletteGrid = document.getElementById('colorPaletteGrid');
+
+            // --- Image Handling ---
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    imagePreviewArea.style.display = 'block';
+                    paletteResults.style.display = 'block';
+                    extractColors(reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // --- Color Extraction Logic (Simple implementation using Canvas) ---
+            function extractColors(imageUrl, numColors = 5) {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous'; // Required for canvas operations on cross-origin images
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    // Get image data
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const pixels = imageData.data;
+                    const colorCounts = {};
+
+                    // Sample pixels (to speed up processing)
+                    for (let i = 0; i < pixels.length; i += 20 * 4) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
+                        const hex = `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+                        colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+                    }
+
+                    // Sort colors by count to find dominant ones
+                    const sortedColors = Object.entries(colorCounts).sort(([, countA], [, countB]) => countB - countA);
+                    const dominantColors = sortedColors.slice(0, numColors).map(([hex]) => hex);
+
+                    renderPalette(dominantColors);
+                };
+                img.src = imageUrl;
+            }
+
+            // --- Render Palette ---
+            function renderPalette(colors) {
+                colorPaletteGrid.innerHTML = '';
+                colors.forEach(hex => {
+                    const colorItem = document.createElement('div');
+                    colorItem.className = 'color-item';
+                    colorItem.style.backgroundColor = hex;
+                    colorItem.innerHTML = `<span class="color-label">${hex}</span>`;
+                    colorItem.addEventListener('click', () => copyToClipboard(hex));
+                    colorPaletteGrid.appendChild(colorItem);
+                });
+            }
+
+            // --- Utility: Copy to Clipboard ---
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(`Copied: ${text}`);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

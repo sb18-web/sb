@@ -1,0 +1,219 @@
+<!-- START OF FILE: tools/json-formatter.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>JSON Formatter Online | Beautify, Validate and Minify JSON | Tulvaa</title>
+    <meta name="description" content="Validate, format, and minify JSON code instantly in your browser. Choose indentation size and easily copy the formatted output. Privacy-first local processing." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 900px; /* Wider card for code/preview */
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for JSON Formatter --- */
+        .json-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .json-layout textarea {
+            min-height: 250px;
+            font-family: monospace; /* Use a monospaced font for code */
+            font-size: 0.95em;
+        }
+        .json-layout pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 100px;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+            font-family: monospace;
+            font-size: 0.95em;
+            overflow: auto; /* Ensure horizontal scrolling for long lines */
+        }
+        [data-theme="dark"] .json-layout pre { background: #334155; }
+
+        .tool-controls { display: flex; justify-content: flex-start; gap: 1rem; flex-wrap: wrap; }
+        .tool-options { display: flex; align-items: center; gap: 1rem; }
+        .tool-options label { font-size: 0.9em; font-weight: 500; }
+
+        /* Output area styling (improved for copy button placement) */
+        .output-container { margin-top: 1.5rem; position: relative; }
+        .output-container .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🧩 JSON Formatter & Validator</h1>
+                <p class="tool-desc">Beautify and validate JSON data instantly in your browser. All processing is done locally, ensuring your data remains private.</p>
+            </header>
+
+            <div class="json-layout">
+                <textarea id="jsonInput" placeholder='Paste JSON here...' class="tool-input"></textarea>
+
+                <div class="tool-controls">
+                    <div class="tool-options">
+                        <label for="indentSize">Indentation:</label>
+                        <select id="indentSize" class="tool-input" style="width: auto;">
+                            <option value="2">2 Spaces</option>
+                            <option value="4">4 Spaces</option>
+                            <option value="tab">Tab</option>
+                        </select>
+                    </div>
+                    <button class="btn" id="formatBtn">Format JSON</button>
+                    <button class="btn" id="minifyBtn">Minify JSON</button>
+                    <button class="btn" id="clearBtn">Clear</button>
+                </div>
+
+                <div class="output-container">
+                    <h3>Output:</h3>
+                    <pre id="jsonOutput"></pre>
+                    <button class="copy-button" id="copyBtn" style="display: none;">Copy</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste your JSON string into the input box.</li>
+                <li>Choose the desired indentation size (2 or 4 spaces, or tab) in the options.</li>
+                <li>Click "Format JSON" to prettify and validate the JSON code.</li>
+                <li>Click "Minify JSON" to compress the JSON code.</li>
+                <li>If the JSON is invalid, an error message will display.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const jsonInput = document.getElementById('jsonInput');
+            const jsonOutput = document.getElementById('jsonOutput');
+            const formatBtn = document.getElementById('formatBtn');
+            const minifyBtn = document.getElementById('minifyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn'); // New copy button reference
+            const indentSizeSelect = document.getElementById('indentSize'); // New indent option
+
+            // --- JSON Processing Functions ---
+
+            // Function to format JSON (prettify)
+            function formatJson() {
+                try {
+                    const parsedJson = JSON.parse(jsonInput.value);
+                    const indent = indentSizeSelect.value === 'tab' ? '\t' : parseInt(indentSizeSelect.value);
+                    jsonOutput.textContent = JSON.stringify(parsedJson, null, indent);
+                    jsonOutput.style.color = 'var(--text)'; // Reset text color on success
+                    copyBtn.style.display = 'inline-block'; // Show copy button on success
+                } catch (e) {
+                    jsonOutput.textContent = 'Error: Invalid JSON format. Please check your syntax.';
+                    jsonOutput.style.color = 'red'; // Add visual error feedback
+                    copyBtn.style.display = 'none'; // Hide copy button on error
+                }
+            }
+
+            // Function to minify JSON (remove whitespace)
+            function minifyJson() {
+                try {
+                    const parsedJson = JSON.parse(jsonInput.value);
+                    jsonOutput.textContent = JSON.stringify(parsedJson);
+                    jsonOutput.style.color = 'var(--text)'; // Reset text color on success
+                    copyBtn.style.display = 'inline-block'; // Show copy button on success
+                } catch (e) {
+                    jsonOutput.textContent = 'Error: Invalid JSON format.';
+                    jsonOutput.style.color = 'red';
+                    copyBtn.style.display = 'none'; // Hide copy button on error
+                }
+            }
+
+            // Function to clear input and output
+            function clearFields() {
+                jsonInput.value = '';
+                jsonOutput.textContent = '';
+                jsonOutput.style.color = 'var(--text)'; // Reset text color
+                copyBtn.style.display = 'none'; // Hide copy button on clear
+            }
+
+            // --- Event Listeners ---
+            formatBtn.addEventListener('click', formatJson);
+            minifyBtn.addEventListener('click', minifyJson);
+            clearBtn.addEventListener('click', clearFields);
+
+            // Copy button listener (NEW)
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = jsonOutput.textContent;
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy text.');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

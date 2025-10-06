@@ -1,0 +1,332 @@
+<!-- START OF FILE: tools/qr-reader.html (NEW TOOL) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>QR Code & Barcode Scanner Online | Scan from Camera or Image | Tulvaa</title>
+    <meta name="description" content="Scan QR codes and barcodes using your device camera or by uploading an image. Decode data from multiple codes, then copy, export to CSV/JSON, or share securely. No app install needed." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include JS library for scanning (zxing-js/library) -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 800px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for QR Reader --- */
+        .scanner-layout { display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+
+        /* Upload area styles (reused from other tools) */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        /* Scanner controls and preview */
+        .scanner-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
+        .scanner-preview-container { width: 100%; max-width: 400px; margin-top: 1rem; position: relative; }
+        #cameraVideo { width: 100%; border-radius: 8px; border: 1px solid var(--border-color); }
+        #scanCanvas { display: none; } /* Used for scanning images from file */
+
+        /* Results area */
+        .scan-results { margin-top: 1.5rem; width: 100%; }
+        .scan-results h3 { margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .result-item { padding: 1rem; background: var(--bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.5rem; }
+        .result-item strong { display: block; margin-bottom: 0.2rem; color: var(--accent); }
+        .result-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; }
+        .result-actions button { font-size: 0.9em; padding: 0.5rem 1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>📱 QR Code & Barcode Scanner</h1>
+                <p class="tool-desc">Scan QR codes and various barcodes using your device camera or an image file. All decoding happens privately in your browser.</p>
+            </header>
+
+            <div class="scanner-layout">
+                <!-- Camera/Image Upload Selection -->
+                <div class="scanner-controls">
+                    <button class="btn" id="startCamBtn">Start Camera Scanner</button>
+                    <button class="btn" id="uploadImageBtn">Upload Image File</button>
+                </div>
+
+                <!-- Live Camera Feed (Video Element) -->
+                <div class="scanner-preview-container" id="scannerPreviewContainer">
+                    <video id="cameraVideo" playsinline autoplay style="display: none;"></video>
+                    <!-- Canvas for processing uploaded images -->
+                    <canvas id="scanCanvas" style="display: none;"></canvas>
+                </div>
+
+                <!-- Scan Results Area -->
+                <div class="scan-results" id="resultsArea" style="display: none;">
+                    <h3>Scanned Data (<span id="resultCount">0</span>)</h3>
+                    <div id="resultList">
+                        <!-- Scanned data items will be added here -->
+                    </div>
+                    <div class="scanner-controls" style="margin-top: 1rem;">
+                        <button class="btn" id="exportCsvBtn">Export CSV</button>
+                        <button class="btn" id="exportJsonBtn">Export JSON</button>
+                        <button class="btn" id="clearResultsBtn">Clear Results</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click "Start Camera Scanner" to enable your device camera for real-time scanning. Point the camera at a QR code or barcode.</li>
+                <li>Alternatively, click "Upload Image File" to select a photo containing a QR code or barcode from your device.</li>
+                <li>Scan results will appear in the "Scanned Data" section below.</li>
+                <li>Use the options to copy individual codes or export all results to CSV/JSON.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const startCamBtn = document.getElementById('startCamBtn');
+            const uploadImageBtn = document.getElementById('uploadImageBtn');
+            const cameraVideo = document.getElementById('cameraVideo');
+            const scanCanvas = document.getElementById('scanCanvas');
+            const resultsArea = document.getElementById('resultsArea');
+            const resultList = document.getElementById('resultList');
+            const resultCountSpan = document.getElementById('resultCount');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const exportJsonBtn = document.getElementById('exportJsonBtn');
+            const clearResultsBtn = document.getElementById('clearResultsBtn');
+            const scannerPreviewContainer = document.getElementById('scannerPreviewContainer');
+
+            // --- State Variables ---
+            let codeReader = null;
+            let currentResults = [];
+
+            // --- Scanner Initialization ---
+            if (window.ZXing) {
+                codeReader = new ZXing.BrowserMultiFormatReader();
+            }
+
+            // --- Camera Scanning Logic ---
+            startCamBtn.addEventListener('click', () => {
+                if (codeReader && !codeReader.stream) {
+                    startCameraScan();
+                } else if (codeReader) {
+                    stopCameraScan();
+                } else {
+                    alert('QR code scanner library not loaded.');
+                }
+            });
+
+            function startCameraScan() {
+                // Clear existing results
+                clearResults();
+
+                // Start decoding from video stream
+                codeReader.decodeFromVideoDevice(null, cameraVideo, (result, error) => {
+                    if (result) {
+                        handleScanResult(result.text, result.format.name);
+                    }
+                })
+                .then(() => {
+                    cameraVideo.style.display = 'block';
+                    startCamBtn.textContent = 'Stop Camera Scanner';
+                    scannerPreviewContainer.classList.add('active');
+                })
+                .catch(err => {
+                    console.error('Failed to start camera scan:', err);
+                    alert('Cannot start camera scanner. Please check device permissions.');
+                    startCamBtn.textContent = 'Start Camera Scanner';
+                });
+            }
+
+            function stopCameraScan() {
+                if (codeReader && codeReader.stream) {
+                    codeReader.reset();
+                    cameraVideo.style.display = 'none';
+                    startCamBtn.textContent = 'Start Camera Scanner';
+                    scannerPreviewContainer.classList.remove('active');
+                }
+            }
+
+            // --- Image Upload Logic ---
+            uploadImageBtn.addEventListener('click', () => {
+                stopCameraScan();
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => handleImageUpload(e.target.files[0]);
+                input.click();
+            });
+
+            async function handleImageUpload(file) {
+                const img = new Image();
+                img.onload = async () => {
+                    scanCanvas.width = img.width;
+                    scanCanvas.height = img.height;
+                    const ctx = scanCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                    // Decode from canvas
+                    codeReader.decodeFromImage(scanCanvas)
+                        .then(result => {
+                            handleScanResult(result.text, result.format.name);
+                        })
+                        .catch(err => {
+                            if (err instanceof ZXing.NotFoundException) {
+                                alert('No QR code or barcode found in image.');
+                            } else {
+                                console.error('Error scanning image:', err);
+                                alert('Error scanning image.');
+                            }
+                        });
+                };
+                img.src = URL.createObjectURL(file);
+            }
+
+            // --- Results Management ---
+            function handleScanResult(text, format) {
+                const existingResult = currentResults.find(res => res.text === text);
+                if (existingResult) return; // Avoid adding duplicates
+
+                currentResults.push({ text: text, format: format });
+                renderResults();
+            }
+
+            function renderResults() {
+                resultList.innerHTML = '';
+                resultsArea.style.display = currentResults.length > 0 ? 'block' : 'none';
+                resultCountSpan.textContent = currentResults.length;
+
+                currentResults.forEach((result, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    item.innerHTML = `
+                        <strong>${result.format} Code:</strong>
+                        <pre style="white-space: pre-wrap; word-break: break-all;">${result.text}</pre>
+                        <div class="result-actions">
+                            <button class="btn copy-btn" data-index="${index}">Copy</button>
+                            <!-- You can add a share button here if needed -->
+                        </div>
+                    `;
+                    resultList.appendChild(item);
+                });
+            }
+
+            function clearResults() {
+                currentResults = [];
+                renderResults();
+            }
+            clearResultsBtn.addEventListener('click', clearResults);
+
+            // --- Export Logic (CSV/JSON) ---
+            exportCsvBtn.addEventListener('click', () => {
+                const csvContent = "data:text/csv;charset=utf-8," + currentResults.map(res => `"${res.format}","${res.text}"`).join('\n');
+                downloadFile(csvContent, 'scanned_data.csv');
+            });
+
+            exportJsonBtn.addEventListener('click', () => {
+                const jsonContent = "data:text/json;charset=utf-8," + JSON.stringify(currentResults, null, 2);
+                downloadFile(jsonContent, 'scanned_data.json');
+            });
+
+            function downloadFile(content, fileName) {
+                const link = document.createElement('a');
+                link.setAttribute('href', content);
+                link.setAttribute('download', fileName);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+
+            // --- Copy Button Listener ---
+            resultList.addEventListener('click', (event) => {
+                if (event.target.classList.contains('copy-btn')) {
+                    const index = parseInt(event.target.dataset.index);
+                    const textToCopy = currentResults[index].text;
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            event.target.textContent = 'Copied!';
+                            setTimeout(() => event.target.textContent = 'Copy', 1500);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy:', err);
+                            alert('Failed to copy text.');
+                        });
+                }
+            });
+
+            // --- Initial setup on load (for PWA and navigation, handled by load-components.js) ---
+        });
+    </script>
+</body>
+</html>

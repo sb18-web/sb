@@ -1,0 +1,463 @@
+<!-- START OF FILE: tools/steganography.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Steganography Tool Online | Hide Text in Images Securely | Tulvaa</title>
+    <meta name="description" content="Hide secret text messages inside images using LSB (Least Significant Bit) steganography or extract hidden messages from images with an optional password. Client-side, privacy-first tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include crypto-js library for encryption (Local processing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Steganography --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .steg-image-container { margin-top: 1.5rem; text-align: center; }
+        .steg-preview-image { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        .steg-message-input { margin-top: 1.5rem; }
+        .steg-message-input textarea { min-height: 100px; }
+        .steg-controls { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+        .result-message-container { margin-top: 1.5rem; }
+        .result-message-box {
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+        }
+        /* New: Message capacity display */
+        .message-capacity { font-size: 0.9em; color: #64748b; margin-top: 0.2rem; }
+        [data-theme="dark"] .message-capacity { color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🕵️ Steganography Tool</h1>
+                <p class="tool-desc">Hide secret text inside an image or extract hidden text from an image (using LSB method). For educational purposes only.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgFile" accept="image/png">
+                <div class="drop-hint">Supported formats: PNG (Recommended)</div>
+            </div>
+
+            <div class="steg-image-container" id="imagePreviewContainer" style="display: none;">
+                <img id="previewImage" class="steg-preview-image" src="" alt="Image Preview">
+            </div>
+
+            <div class="steg-message-input" id="messageInputArea"> <!-- Added ID to control visibility -->
+                <textarea id="msgInput" placeholder='Secret message to hide' class="tool-input"></textarea>
+                <div class="message-capacity" id="capacityInfo"></div> <!-- NEW capacity display -->
+                <input type="password" id="passwordInput" placeholder="Optional password" class="tool-input" style="margin-top: 10px;">
+            </div>
+
+            <div class="steg-controls">
+                <button class="btn" id="encodeBtn">Hide Message</button>
+                <button class="btn" id="decodeBtn">Decode Message</button>
+            </div>
+
+            <div class="result-message-container" id="resultContainer" style="display: none;">
+                <h3>Decoded Message:</h3>
+                <div class="result-message-box" id="decodedMessage"></div>
+            </div>
+
+            <div class="result-download-container" id="downloadContainer" style="display: none;">
+                <a class="btn" id="downloadBtn" download="stego.png">⬇️ Download Encoded Image</a>
+            </div>
+
+            <div class="tool-controls">
+                <button class="btn" id="clearBtn" style="margin-top: 1rem;">Clear</button> <!-- NEW CLEAR BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Upload an image file (PNG recommended for best results).</li>
+                <li>To hide a message: Enter text and an optional password, then click "Hide Message". A new image with the hidden message will be generated for download.</li>
+                <li>To decode a message: Upload the encoded image, enter the optional password (if one was used), and click "Decode Message". The hidden text will appear in the result box.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgFile');
+            const previewImage = document.getElementById('previewImage');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const msgInput = document.getElementById('msgInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const encodeBtn = document.getElementById('encodeBtn');
+            const decodeBtn = document.getElementById('decodeBtn');
+            const downloadContainer = document.getElementById('downloadContainer');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const decodedMessage = document.getElementById('decodedMessage');
+            const capacityInfo = document.getElementById('capacityInfo'); // NEW element
+            const clearBtn = document.getElementById('clearBtn'); // NEW clear button
+
+            let currentImageFile = null;
+            let currentImageCapacity = 0;
+
+            // --- UI Reset Function ---
+            function resetUI() {
+                dropZone.style.display = 'flex';
+                imagePreviewContainer.style.display = 'none';
+                msgInput.value = '';
+                passwordInput.value = '';
+                resultContainer.style.display = 'none';
+                downloadContainer.style.display = 'none';
+                capacityInfo.textContent = '';
+                currentImageFile = null;
+                currentImageCapacity = 0;
+            }
+            clearBtn.addEventListener('click', resetUI);
+
+            // --- Helper Functions ---
+            function toUint8(s) { return new TextEncoder().encode(s); }
+            function toStr(u) { return new TextDecoder().decode(u); }
+
+            // Password-based Key Derivation (using Web Crypto API)
+            async function deriveKey(password, salt) {
+                const enc = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    enc.encode(password),
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveKey']
+                );
+                return crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            // Encrypt message using AES-GCM
+            async function encryptMessage(message, password) {
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                const key = await deriveKey(password, salt);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const enc = new TextEncoder();
+                const ciphertext = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    key,
+                    enc.encode(message)
+                );
+                const combined = new Uint8Array(salt.byteLength + iv.byteLength + ciphertext.byteLength);
+                combined.set(salt, 0);
+                combined.set(iv, salt.byteLength);
+                combined.set(new Uint8Array(ciphertext), salt.byteLength + iv.byteLength);
+                return combined;
+            }
+
+            // Decrypt message using AES-GCM
+            async function decryptMessage(combinedData, password) {
+                const salt = combinedData.slice(0, 16);
+                const iv = combinedData.slice(16, 28);
+                const ciphertext = combinedData.slice(28);
+                const key = await deriveKey(password, salt);
+
+                try {
+                    const decrypted = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv },
+                        key,
+                        ciphertext
+                    );
+                    return new TextDecoder().decode(decrypted);
+                } catch (e) {
+                    return null; // Decryption failed (wrong password)
+                }
+            }
+
+            // Handle file selection (click or drag/drop)
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+                currentImageFile = file;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    previewImage.src = reader.result;
+                    imagePreviewContainer.style.display = 'block';
+                    dropZone.style.display = 'none';
+                    resultContainer.style.display = 'none'; // Clear previous decode result
+                    downloadContainer.style.display = 'none'; // Hide download link for new image
+                    updateMessageCapacity(reader.result); // NEW capacity update call
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // --- Steganography Encoding Logic (LSB) ---
+            async function encodeImage(payloadBytes) {
+                const img = new Image();
+                img.src = previewImage.src;
+                await new Promise(r => img.onload = r);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Check size constraint (assuming 3 bits per pixel for simple LSB)
+                // We reserve 4 bytes for length, 16 for salt, 12 for IV
+                const payloadLengthBits = (payloadBytes.length + 4) * 8; // Including length prefix
+                if (payloadLengthBits > imageData.data.length * 3) {
+                    throw new Error('Message too large for this image size.');
+                }
+
+                // Create full payload with length prefix (first 4 bytes)
+                const fullPayload = new Uint8Array(payloadBytes.length + 4);
+                fullPayload[0] = (payloadBytes.length >>> 24) & 255;
+                fullPayload[1] = (payloadBytes.length >>> 16) & 255;
+                fullPayload[2] = (payloadBytes.length >>> 8) & 255;
+                fullPayload[3] = payloadBytes.length & 255;
+                fullPayload.set(payloadBytes, 4);
+
+                let bitIndex = 0;
+                for (let i = 0; i < imageData.data.length && bitIndex < fullPayload.length * 8; i += 4) {
+                    for (let c = 0; c < 3 && bitIndex < fullPayload.length * 8; c++) {
+                        const byteIdx = Math.floor(bitIndex / 8);
+                        const bitIn = 7 - (bitIndex % 8);
+                        const bit = (fullPayload[byteIdx] >> bitIn) & 1;
+                        imageData.data[i + c] = (imageData.data[i + c] & 0xFE) | bit;
+                        bitIndex++;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                return canvas.toDataURL('image/png');
+            }
+
+            async function decodeImage() {
+                const img = new Image();
+                img.src = previewImage.src;
+                await new Promise(r => img.onload = r);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let bits = [];
+
+                // Read message length (first 32 bits)
+                for (let i = 0; i < 32; i++) {
+                    const pixIdx = Math.floor(i / 3) * 4 + (i % 3);
+                    bits.push(imageData.data[pixIdx] & 1);
+                }
+
+                let len = 0;
+                for (let i = 0; i < 32; i++) {
+                    len = (len << 1) | bits[i];
+                }
+
+                if (len === 0 || len > (imageData.data.length / 4) * 3 - 4) {
+                    return null; // No hidden message or invalid length
+                }
+
+                // Read message payload
+                const totalBits = (4 + len) * 8;
+                const payloadBits = [];
+                for (let i = 0; i < totalBits; i++) {
+                    const pixIdx = Math.floor(i / 3) * 4 + (i % 3);
+                    payloadBits.push(imageData.data[pixIdx] & 1);
+                }
+
+                const payloadBytes = new Uint8Array(Math.ceil(payloadBits.length / 8));
+                for (let i = 0; i < payloadBits.length; i++) {
+                    const byteIndex = Math.floor(i / 8);
+                    payloadBytes[byteIndex] = (payloadBytes[byteIndex] << 1) | payloadBits[i];
+                }
+
+                return payloadBytes.slice(4, 4 + len);
+            }
+
+            // --- Capacity Calculation (NEW FEATURE) ---
+            function updateMessageCapacity(dataUrl) {
+                const img = new Image();
+                img.src = dataUrl;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                    // Max capacity calculation: (pixels * 3 bits per pixel) / 8 bits per byte = capacity bytes
+                    const maxCapacityBytes = Math.floor((imageData.data.length / 4) * 3 / 8) - 4; // Minus 4 bytes for length prefix
+                    currentImageCapacity = maxCapacityBytes;
+                    const maxMessageLength = maxCapacityBytes;
+
+                    msgInput.setAttribute('maxlength', maxMessageLength);
+                    msgInput.addEventListener('input', updateInputCount);
+                    updateInputCount();
+                };
+            }
+
+            function updateInputCount() {
+                const currentLength = msgInput.value.length;
+                const remaining = currentImageCapacity - currentLength;
+                capacityInfo.textContent = `Characters remaining: ${remaining} (Max: ${currentImageCapacity})`;
+            }
+
+            // --- Event Listeners ---
+            encodeBtn.addEventListener('click', async () => {
+                if (!currentImageFile) return alert('Please load an image first.');
+                const message = msgInput.value || '';
+                if (!message) return alert('Enter a message to hide.');
+
+                const password = passwordInput.value;
+                let payloadBytes;
+
+                if (password) {
+                    // Encrypt message before encoding
+                    try {
+                        payloadBytes = await encryptMessage(message, password);
+                    } catch (e) {
+                        return alert('Encryption failed. Please try again.');
+                    }
+                } else {
+                    payloadBytes = toUint8(message);
+                }
+
+                try {
+                    const encodedDataUrl = await encodeImage(payloadBytes);
+                    downloadBtn.href = encodedDataUrl;
+                    downloadContainer.style.display = 'block';
+                    // Update preview image to show encoded version (for visual feedback)
+                    previewImage.src = encodedDataUrl;
+                    alert('Message successfully hidden. Download the image.');
+                } catch (e) {
+                    alert('Error during encoding: ' + e.message);
+                }
+            });
+
+            decodeBtn.addEventListener('click', async () => {
+                if (!currentImageFile) return alert('Please load an image first.');
+
+                const decodedBytes = await decodeImage();
+                if (!decodedBytes) {
+                    decodedMessage.textContent = 'No hidden message found.';
+                    resultContainer.style.display = 'block';
+                    return;
+                }
+
+                const password = passwordInput.value;
+                if (password) {
+                    // Decrypt message using password
+                    const decryptedText = await decryptMessage(decodedBytes, password);
+                    if (decryptedText === null) {
+                        decodedMessage.textContent = 'Decryption failed. Invalid password.';
+                    } else {
+                        decodedMessage.textContent = decryptedText;
+                    }
+                } else {
+                    decodedMessage.textContent = toStr(decodedBytes);
+                }
+                resultContainer.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

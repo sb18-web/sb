@@ -1,0 +1,346 @@
+<!-- START OF FILE: tools/image-palette-extractor.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Image Palette Extractor | Dominant Color Analyzer Online | Tulvaa</title>
+    <meta name="description" content="Extract the dominant color palette from any image. Analyze and get HEX and RGB color codes instantly. Customize the number of colors to extract. Privacy-first local processing." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <!-- Include JS library for advanced color quantization (e.g., quantize.js) -->
+    <!-- Note: For this example, we'll stick to a simple canvas-based method for ease of implementation,
+         but advanced users might suggest using a library like quantize.js for better accuracy. -->
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Image Palette Extractor --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .image-preview-area { margin-top: 1.5rem; text-align: center; }
+        .image-preview { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        .palette-results { margin-top: 2rem; text-align: center; }
+        .color-palette-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 1rem; }
+        .color-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: flex-end; /* Align label to the bottom */
+            justify-content: center;
+            font-size: 0.8em;
+            color: white;
+            transition: transform 0.2s ease;
+        }
+        .color-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .color-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 0.8em;
+            padding: 3px 0;
+            border-radius: 0 0 8px 8px;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        /* Loading Spinner */
+        .loading-indicator {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Options for number of colors */
+        .palette-options { margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🎨 Image Palette Extractor</h1>
+                <p class="tool-desc">Upload an image to identify and extract its dominant colors. Get instant HEX and RGB color codes.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgInput" accept="image/png,image/jpeg">
+                <div class="drop-hint">Supported formats: JPG, PNG</div>
+            </div>
+
+            <div class="image-preview-area" id="imagePreviewArea" style="display: none;">
+                <img id="imagePreview" class="image-preview" src="" alt="Image Preview">
+            </div>
+
+            <div class="palette-options" id="paletteOptions" style="display: none;">
+                <label for="colorCount">Number of Colors:</label>
+                <select id="colorCount" class="tool-input" style="width: auto;">
+                    <option value="5">5 Colors</option>
+                    <option value="10">10 Colors</option>
+                    <option value="20">20 Colors</option>
+                </select>
+            </div>
+
+            <!-- Loading indicator for extraction -->
+            <div id="loadingIndicator" class="loading-indicator" style="display:none;"></div>
+
+            <div class="palette-results" id="paletteResults" style="display: none;">
+                <h3>Extracted Colors:</h3>
+                <div class="color-palette-grid" id="colorPaletteGrid">
+                    <!-- Color items will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your image file (JPG or PNG) into the drop zone.</li>
+                <li>(New) Select the desired number of colors to extract using the dropdown menu.</li>
+                <li>The tool will analyze the image and display the dominant colors below.</li>
+                <li>Click on a color swatch to copy its HEX code to your clipboard.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewArea = document.getElementById('imagePreviewArea');
+            const paletteResults = document.getElementById('paletteResults');
+            const colorPaletteGrid = document.getElementById('colorPaletteGrid');
+            const loadingIndicator = document.getElementById('loadingIndicator'); // New loading indicator
+            const paletteOptions = document.getElementById('paletteOptions'); // New options group
+            const colorCountSelect = document.getElementById('colorCount'); // New dropdown
+
+            let currentImageBase64 = null;
+
+            // --- UI Reset Function ---
+            function resetUI() {
+                dropZone.style.display = 'flex';
+                imagePreviewArea.style.display = 'none';
+                paletteResults.style.display = 'none';
+                paletteOptions.style.display = 'none';
+                loadingIndicator.style.display = 'none';
+                colorPaletteGrid.innerHTML = '';
+                imgInput.value = '';
+                currentImageBase64 = null;
+            }
+
+            // --- Image Handling ---
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    currentImageBase64 = reader.result; // Store base64 data
+                    imagePreview.src = currentImageBase64;
+                    imagePreviewArea.style.display = 'block';
+                    paletteOptions.style.display = 'flex';
+                    dropZone.style.display = 'none';
+                    // Trigger extraction automatically when image loads
+                    extractColors(currentImageBase64);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // --- Color Extraction Logic (Simple implementation using Canvas) ---
+            async function extractColors(imageUrl) {
+                loadingIndicator.style.display = 'block';
+                paletteResults.style.display = 'none';
+
+                const numColors = parseInt(colorCountSelect.value);
+
+                return new Promise(resolve => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const width = img.width;
+                        const height = img.height;
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Get image data
+                        const imageData = ctx.getImageData(0, 0, width, height);
+                        const pixels = imageData.data;
+                        const colorCounts = {};
+
+                        // Sample pixels (to speed up processing for large images)
+                        // Sample rate of 1 pixel out of every 20 for large images
+                        const step = 20 * 4;
+                        for (let i = 0; i < pixels.length; i += step) {
+                            const r = pixels[i];
+                            const g = pixels[i + 1];
+                            const b = pixels[i + 2];
+                            const hex = `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+                            colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+                        }
+
+                        // Sort colors by count to find dominant ones
+                        const sortedColors = Object.entries(colorCounts).sort(([, countA], [, countB]) => countB - countA);
+                        const dominantColors = sortedColors.slice(0, numColors).map(([hex]) => hex);
+
+                        renderPalette(dominantColors);
+                        loadingIndicator.style.display = 'none';
+                        paletteResults.style.display = 'block';
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        loadingIndicator.style.display = 'none';
+                        alert('Error loading image.');
+                        resetUI();
+                        resolve();
+                    };
+                    img.src = imageUrl;
+                });
+            }
+
+            // --- Render Palette ---
+            function renderPalette(colors) {
+                colorPaletteGrid.innerHTML = '';
+                colors.forEach(hex => {
+                    const colorItem = document.createElement('div');
+                    colorItem.className = 'color-item';
+                    colorItem.style.backgroundColor = hex;
+                    colorItem.dataset.color = hex; // Store hex code
+                    colorItem.addEventListener('click', () => copyToClipboard(hex, colorItem));
+
+                    // Add label inside a span to avoid affecting copy event on click
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'color-label';
+                    labelSpan.textContent = hex;
+                    colorItem.appendChild(labelSpan);
+
+                    colorPaletteGrid.appendChild(colorItem);
+                });
+            }
+
+            // --- Utility: Copy to Clipboard (Improved UX) ---
+            function copyToClipboard(text, element) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Show a quick visual confirmation (e.g., change label text temporarily)
+                    const originalText = element.querySelector('.color-label').textContent;
+                    element.querySelector('.color-label').textContent = 'Copied!';
+                    setTimeout(() => {
+                        element.querySelector('.color-label').textContent = originalText;
+                    }, 1000);
+                }).catch(err => {
+                    console.error('Copy failed:', err);
+                    alert('Copy failed. Please try again or manually copy.');
+                });
+            }
+
+            // --- Event Listeners ---
+            colorCountSelect.addEventListener('change', () => {
+                if (currentImageBase64) {
+                    extractColors(currentImageBase64);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

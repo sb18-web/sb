@@ -1,0 +1,234 @@
+<!-- START OF FILE: tools/line-operations.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Online Line Operations Tool | Sort, Shuffle, Remove Duplicates | Tulvaa</title>
+    <meta name="description" content="Perform various operations on text lines: sort alphabetically, reverse order, shuffle, remove duplicate lines, and trim whitespace. Fast and private in-browser tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 800px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Line Operations --- */
+        .text-input-container textarea { min-height: 200px; }
+        .line-operation-controls { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.5rem; margin-top: 1rem; }
+        .output-container { margin-top: 1.5rem; position: relative; }
+        .output-text {
+            word-wrap: break-word;
+            min-height: 100px;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 0.95em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .swap-button { margin-left: 0.5rem; } /* Adjusted spacing for swap button */
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🔠 Line Operations Tool</h1>
+                <p class="tool-desc">Sort, shuffle, or remove duplicate lines from your text input. All processing is private and happens in your browser.</p>
+            </header>
+
+            <div class="text-input-container">
+                <textarea id="txtInput" placeholder="Enter text here..." class="tool-input"></textarea>
+            </div>
+
+            <div class="tool-controls">
+                <button class="btn" id="sortAscBtn">Sort A-Z</button>
+                <button class="btn" id="sortDescBtn">Sort Z-A</button>
+                <button class="btn" id="shuffleBtn">Shuffle Lines</button>
+                <button class="btn" id="removeDuplicatesBtn">Remove Duplicates</button>
+                <button class="btn" id="trimLinesBtn">Trim Lines</button> <!-- NEW TRIM BUTTON -->
+                <button class="btn" id="clearBtn">Clear</button>
+            </div>
+
+            <div class="output-container" id="outputContainer">
+                <div id="outputText" class="output-text"></div>
+                <button class="copy-button" id="copyBtn" style="display: none;">Copy</button>
+            </div>
+            <div class="tool-controls" style="margin-top: 0.5rem;">
+                <button class="btn swap-button" id="swapBtn">Swap Input/Output</button> <!-- NEW SWAP BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste your list of items or lines of text into the input box above.</li>
+                <li>Choose an operation to perform: sort alphabetically, reverse sort, shuffle randomly, or remove identical lines.</li>
+                <li>(New) Use "Trim Lines" to remove extra spaces from the start and end of each line.</li>
+                <li>The result will appear in the output box.</li>
+                <li>Use the copy button to get the processed text or "Swap Input/Output" to continue editing.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const txtInput = document.getElementById('txtInput');
+            const outputText = document.getElementById('outputText');
+            const copyBtn = document.getElementById('copyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const sortAscBtn = document.getElementById('sortAscBtn');
+            const sortDescBtn = document.getElementById('sortDescBtn');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const removeDuplicatesBtn = document.getElementById('removeDuplicatesBtn');
+            const trimLinesBtn = document.getElementById('trimLinesBtn'); // NEW element
+            const swapBtn = document.getElementById('swapBtn'); // NEW element
+
+            // --- Line Manipulation Functions ---
+            function getLines(text) {
+                return text.split('\n');
+            }
+
+            function setOutput(lines) {
+                outputText.textContent = lines.join('\n');
+                copyBtn.style.display = 'inline-block';
+            }
+
+            function sortLines(lines, direction) {
+                return lines.sort((a, b) => {
+                    if (direction === 'asc') return a.localeCompare(b);
+                    else return b.localeCompare(a);
+                });
+            }
+
+            function shuffleLines(lines) {
+                for (let i = lines.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [lines[i], lines[j]] = [lines[j], lines[i]];
+                }
+                return lines;
+            }
+
+            function removeDuplicates(lines) {
+                return Array.from(new Set(lines));
+            }
+
+            function trimLines(lines) { // NEW trim function
+                return lines.map(line => line.trim());
+            }
+
+            // --- Event Listeners ---
+            sortAscBtn.addEventListener('click', () => {
+                const lines = getLines(txtInput.value);
+                const sortedLines = sortLines(lines, 'asc');
+                setOutput(sortedLines);
+            });
+
+            sortDescBtn.addEventListener('click', () => {
+                const lines = getLines(txtInput.value);
+                const sortedLines = sortLines(lines, 'desc');
+                setOutput(sortedLines);
+            });
+
+            shuffleBtn.addEventListener('click', () => {
+                const lines = getLines(txtInput.value);
+                const shuffledLines = shuffleLines(lines);
+                setOutput(shuffledLines);
+            });
+
+            removeDuplicatesBtn.addEventListener('click', () => {
+                const lines = getLines(txtInput.value);
+                const uniqueLines = removeDuplicates(lines);
+                setOutput(uniqueLines);
+            });
+
+            trimLinesBtn.addEventListener('click', () => { // NEW event listener
+                const lines = getLines(txtInput.value);
+                const trimmedLines = trimLines(lines);
+                setOutput(trimmedLines);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                txtInput.value = '';
+                outputText.textContent = '';
+                copyBtn.style.display = 'none';
+            });
+
+            swapBtn.addEventListener('click', () => { // NEW swap event listener
+                const currentOutput = outputText.textContent;
+                txtInput.value = currentOutput;
+                outputText.textContent = '';
+                copyBtn.style.display = 'none';
+            });
+
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = outputText.textContent;
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy text.');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

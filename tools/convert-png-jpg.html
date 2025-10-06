@@ -1,0 +1,340 @@
+<!-- START OF FILE: tools/convert-png-jpg.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>PNG <> JPG Converter Online | Free Image Converter | Tulvaa</title>
+    <meta name="description" content="Convert images instantly between PNG and JPG formats online. Adjust compression quality when converting to JPG. Our privacy-first tool runs directly in your browser without uploading files." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Converter --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .conversion-controls { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
+        .conversion-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .quality-slider-group {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .quality-slider-group label { font-size: 0.9em; flex-shrink: 0; }
+        .quality-slider-group input { flex-grow: 1; }
+
+        /* Preview container styling */
+        .image-preview-container {
+            margin-top: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--bg);
+        }
+        .image-preview { max-width: 100%; height: auto; border-radius: 6px; }
+        .result-container { margin-top: 1rem; display: flex; flex-direction: column; align-items: center; }
+        .result-container .btn { margin: 0.5rem; }
+        .conversion-status { margin-top: 1rem; font-size: 1em; color: var(--text); }
+
+        /* How To Section styles (inherited from style.css) */
+        .how-to { max-width: 700px; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🖼️ PNG <> JPG Converter</h1>
+                <p class="tool-desc">Convert PNG images to JPG and vice versa instantly in your browser. Adjust image quality to reduce file size when converting to JPG.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgInput" accept="image/png,image/jpeg">
+                <div class="drop-hint">Supported formats: JPG, PNG</div>
+            </div>
+
+            <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <img id="imagePreview" class="image-preview" src="" alt="Image Preview">
+                <div class="conversion-options" id="conversionOptions">
+                    <div class="quality-slider-group" id="jpgOptionsGroup" style="display:none;">
+                        <label for="qualitySlider">Quality (JPG): <span id="qualityValue">90%</span></label>
+                        <input type="range" id="qualitySlider" min="0.1" max="1.0" step="0.1" value="0.9">
+                    </div>
+                    <div class="conversion-controls">
+                        <button class="btn" id="tojpg" disabled>Convert to JPG</button>
+                        <button class="btn" id="topng" disabled>Convert to PNG</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultContainer" class="result-container" style="display: none;">
+                <p class="conversion-status" id="conversionStatus"></p>
+                <div style="margin-top: 1rem;">
+                    <a class="btn" id="downloadLink" href="#" download="converted.png">⬇️ Download Image</a>
+                    <button class="btn" id="shareBtn" style="margin-left: 0.5rem;">Share Image</button>
+                </div>
+                <button class="btn" id="clearBtn" style="margin-top: 1rem;">Clear</button>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your PNG or JPG image file.</li>
+                <li>When converting from PNG to JPG, use the slider to adjust image quality. Lower quality means smaller file size.</li>
+                <li>Click the appropriate conversion button (Convert to PNG or Convert to JPG) to process the image in your browser.</li>
+                <li>A download link for the converted image will appear below.</li>
+                <li>Click "Share Image" to share directly to your favorite apps.</li>
+                <li>Click "Clear" to reset the tool.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- PNG <> JPG Converter Tool Specific Logic ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const toJpgBtn = document.getElementById('tojpg');
+            const toPngBtn = document.getElementById('topng');
+            const resultContainer = document.getElementById('resultContainer');
+            const downloadLink = document.getElementById('downloadLink');
+            const shareBtn = document.getElementById('shareBtn');
+            const conversionStatus = document.getElementById('conversionStatus');
+            const clearBtn = document.getElementById('clearBtn'); // New clear button
+            const jpgOptionsGroup = document.getElementById('jpgOptionsGroup');
+            const qualitySlider = document.getElementById('qualitySlider');
+            const qualityValue = document.getElementById('qualityValue');
+
+            let currentFile = null;
+
+            // --- UI Reset Function ---
+            function resetUI() {
+                dropZone.style.display = 'flex';
+                imagePreviewContainer.style.display = 'none';
+                resultContainer.style.display = 'none';
+                jpgOptionsGroup.style.display = 'none';
+                toJpgBtn.disabled = true;
+                toPngBtn.disabled = true;
+                currentFile = null;
+                conversionStatus.textContent = '';
+                imgInput.value = ''; // Clear file input value
+            }
+
+            // --- Image Handling ---
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                currentFile = files[0];
+                if (!currentFile.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    imagePreviewContainer.style.display = 'block';
+                    dropZone.style.display = 'none';
+                    resultContainer.style.display = 'none'; // Clear previous results
+
+                    // Enable relevant conversion buttons based on file type
+                    const isJpg = currentFile.type === 'image/jpeg';
+                    const isPng = currentFile.type === 'image/png';
+
+                    toJpgBtn.disabled = isJpg;
+                    toPngBtn.disabled = isPng;
+
+                    // Show quality options only when converting to JPG
+                    if (isPng) {
+                        jpgOptionsGroup.style.display = 'flex';
+                    } else {
+                        jpgOptionsGroup.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(currentFile);
+            }
+
+            // --- Conversion Logic ---
+            async function convertImage(targetFormat) {
+                // Set initial status message
+                conversionStatus.textContent = 'Processing...';
+                resultContainer.style.display = 'block';
+                toJpgBtn.disabled = true;
+                toPngBtn.disabled = true;
+
+                // Create image element and wait for it to load
+                const img = new Image();
+                img.src = imagePreview.src;
+                await new Promise(resolve => img.onload = resolve);
+
+                // Create canvas for image processing
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+
+                // If converting from PNG to JPG, handle transparent background.
+                // PNG transparency will render as black on JPG unless a background is added.
+                if (targetFormat === 'jpg' && currentFile.type === 'image/png') {
+                    ctx.fillStyle = "#ffffff"; // White background for transparency
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                ctx.drawImage(img, 0, 0);
+
+                const outputQuality = parseFloat(qualitySlider.value);
+                const mimeType = (targetFormat === 'jpg') ? 'image/jpeg' : 'image/png';
+                const fileName = (targetFormat === 'jpg') ? 'converted.jpg' : 'converted.png';
+
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = fileName;
+                    conversionStatus.textContent = `Conversion successful! File size: ${formatBytes(blob.size)}.`;
+
+                    // Store blob for sharing purposes
+                    currentFile = new File([blob], fileName, { type: mimeType });
+
+                    // Re-enable buttons if needed for next conversion (e.g., if converting JPG to PNG back to JPG)
+                    // But for now, just keep them disabled to avoid confusion after conversion.
+                    toJpgBtn.disabled = true;
+                    toPngBtn.disabled = true;
+                }, mimeType, outputQuality);
+            }
+
+            // --- Event Listeners for Buttons ---
+            toJpgBtn.addEventListener('click', () => convertImage('jpg'));
+            toPngBtn.addEventListener('click', () => convertImage('png'));
+            clearBtn.addEventListener('click', resetUI);
+
+            // Update quality value display on slider change
+            qualitySlider.addEventListener('input', () => {
+                qualityValue.textContent = Math.round(qualitySlider.value * 100) + '%';
+            });
+
+            shareBtn.addEventListener('click', async () => {
+                if (!currentFile) {
+                    alert('Please convert the image first.');
+                    return;
+                }
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            files: [currentFile],
+                            title: 'Converted Image',
+                            text: 'Sharing a converted image from Tulvaa!'
+                        });
+                    } catch (error) {
+                        console.error('Error sharing:', error);
+                        alert('Error sharing image. Please try again or download manually.');
+                    }
+                } else {
+                    alert('Web Share API not supported in this browser. Please use the download button.');
+                }
+            });
+
+            // --- Utility function to format file size ---
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+</body>
+</html>

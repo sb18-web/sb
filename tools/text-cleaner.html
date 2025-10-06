@@ -1,0 +1,198 @@
+<!-- START OF FILE: tools/text-cleaner.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Online Text Cleaner Tool | Remove Extra Spaces & HTML Tags | Tulvaa</title>
+    <meta name="description" content="Quickly clean text by removing extra whitespace, line breaks, or HTML tags. Format your text for better readability and consistency with this privacy-first tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 800px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Text Cleaner --- */
+        .text-input-container textarea { min-height: 200px; }
+        .cleaning-options { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.5rem; margin-top: 1rem; }
+        .output-container { margin-top: 1.5rem; position: relative; }
+        .output-text {
+            word-wrap: break-word;
+            min-height: 100px;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 0.95em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>🧹 Text Cleaner & Stripper</h1>
+                <p class="tool-desc">Quickly remove extra spaces, line breaks, or HTML tags from your text to clean up formatting.</p>
+            </header>
+
+            <div class="text-input-container">
+                <textarea id="txtInput" placeholder="Paste text here..." class="tool-input"></textarea>
+            </div>
+
+            <div class="tool-controls">
+                <button class="btn" id="cleanSpacesBtn">Remove Extra Spaces</button>
+                <button class="btn" id="removeLinesBtn">Remove Line Breaks</button>
+                <button class="btn" id="removeHtmlBtn">Remove HTML Tags</button>
+                <button class="btn" id="trimLinesBtn">Trim Each Line</button> <!-- NEW TRIM BUTTON -->
+                <button class="btn" id="clearBtn">Clear</button>
+            </div>
+
+            <div class="output-container" id="outputContainer">
+                <div id="outputText" class="output-text"></div>
+                <button class="copy-button" id="copyBtn" style="display: none;">Copy</button>
+            </div>
+            <div class="tool-controls" style="margin-top: 0.5rem;">
+                <button class="btn swap-button" id="swapBtn">Swap Input/Output</button> <!-- NEW SWAP BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste your text into the input box above.</li>
+                <li>Choose a cleaning option (e.g., remove extra spaces or HTML tags).</li>
+                <li>(New) Use "Trim Each Line" to remove extra spaces from the start and end of each line.</li>
+                <li>The cleaned text will appear in the output box.</li>
+                <li>Use the copy button to get the clean text or "Swap Input/Output" to continue editing.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const txtInput = document.getElementById('txtInput');
+            const outputText = document.getElementById('outputText');
+            const copyBtn = document.getElementById('copyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const cleanSpacesBtn = document.getElementById('cleanSpacesBtn');
+            const removeLinesBtn = document.getElementById('removeLinesBtn');
+            const removeHtmlBtn = document.getElementById('removeHtmlBtn');
+            const trimLinesBtn = document.getElementById('trimLinesBtn'); // NEW element
+            const swapBtn = document.getElementById('swapBtn'); // NEW element
+
+            // Apply a transformation to the input text and update output
+            function applyTransformation(transformFn) {
+                const text = txtInput.value;
+                if (!text) return;
+                outputText.textContent = transformFn(text);
+                copyBtn.style.display = 'inline-block';
+            }
+
+            // --- Transformation Functions ---
+            function removeExtraSpaces(text) {
+                return text.replace(/\s\s+/g, ' ').trim();
+            }
+
+            function removeLineBreaks(text) {
+                return text.replace(/(\r\n|\n|\r)/gm, " ");
+            }
+
+            function removeHtmlTags(text) {
+                return text.replace(/<[^>]*>?/gm, '');
+            }
+
+            function trimEachLine(text) { // NEW trim function
+                return text.split('\n').map(line => line.trim()).join('\n');
+            }
+
+            // --- Event Listeners ---
+            cleanSpacesBtn.addEventListener('click', () => applyTransformation(removeExtraSpaces));
+            removeLinesBtn.addEventListener('click', () => applyTransformation(removeLineBreaks));
+            removeHtmlBtn.addEventListener('click', () => applyTransformation(removeHtmlTags));
+            trimLinesBtn.addEventListener('click', () => applyTransformation(trimEachLine)); // NEW event listener
+
+            clearBtn.addEventListener('click', () => {
+                txtInput.value = '';
+                outputText.textContent = '';
+                copyBtn.style.display = 'none';
+            });
+
+            swapBtn.addEventListener('click', () => { // NEW swap event listener
+                const currentOutput = outputText.textContent;
+                txtInput.value = currentOutput;
+                outputText.textContent = '';
+                copyBtn.style.display = 'none';
+            });
+
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = outputText.textContent;
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy text.');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!-- START OF FILE: tools/calculator.html (Refactored) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- SEO OPTIMIZATION -->
+  <title>Advanced Calculator | Basic, Scientific & Programmer Modes | Tulvaa</title>
+  <meta name="description" content="Use Tulvaa's free, advanced calculator for basic arithmetic, scientific calculations (trigonometry, log, power), and programmer operations (hex, binary, bitwise). Features memory, history, and a privacy-first local processing design." />
+  <!-- END SEO OPTIMIZATION -->
+
+  <!-- Updated to root-relative path -->
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <!-- NEW: Link to tool-specific CSS file -->
+  <link rel="stylesheet" href="/tools/calculator.css"> 
+  <!-- Note: Common styles (.tool-page, .tool-card) have been moved to style.css -->
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+  <!-- ===== MAIN (Calculator) ===== -->
+  <main class="content tool-page">
+    <section class="tool-card">
+      <header class="tool-header">
+        <h1>🧮 Advanced Calculator</h1>
+        <p class="tool-desc">Choose mode and calculate — Basic, Scientific, or Programmer. Memory & History included.</p>
+      </header>
+
+      <!-- Mode Tabs -->
+      <div class="mode-tabs" role="tablist" aria-label="Calculator modes">
+        <button class="mode-tab active" data-mode="basic">Basic</button>
+        <button class="mode-tab" data-mode="scientific">Scientific</button>
+        <button class="mode-tab" data-mode="programmer">Programmer</button>
+      </div>
+
+      <div class="calc-top">
+        <!-- Left: Display + keypad -->
+        <div class="calc-left">
+          <div id="calculatorDisplay" aria-live="polite">
+            <div id="calcExpression"> </div>
+            <div id="calcResult">0</div>
+          </div>
+
+          <!-- Keypads: one container, inside multiple grids hidden/shown by JS -->
+          <div id="keypadContainer">
+            <!-- BASIC KEYPAD -->
+            <div class="keypad keypad-basic" data-mode="basic">
+              <button class="btn btn-clear">AC</button>
+              <button class="btn" data-op="backspace">⌫</button>
+              <button class="btn" data-op="(">(</button>
+              <button class="btn" data-op=")">)</button>
+              <button class="btn" data-op="%">%</button>
+              <button class="btn btn-operator" data-op="/">÷</button>
+
+              <button class="btn" data-value="7">7</button>
+              <button class="btn" data-value="8">8</button>
+              <button class="btn" data-value="9">9</button>
+              <button class="btn btn-operator" data-op="*">×</button>
+              <button class="btn" data-op="toggle_sign">±</button>
+              <button class="btn" data-op="sqrt">√</button>
+
+              <button class="btn" data-value="4">4</button>
+              <button class="btn" data-value="5">5</button>
+              <button class="btn" data-value="6">6</button>
+              <button class="btn btn-operator" data-op="-">−</button>
+              <button class="btn" data-op="M+">M+</button>
+              <button class="btn" data-op="M-">M-</button>
+
+              <button class="btn" data-value="1">1</button>
+              <button class="btn" data-value="2">2</button>
+              <button class="btn" data-value="3">3</button>
+              <button class="btn btn-operator" data-op="+">+</button>
+              <button class="btn" data-op="MR">MR</button>
+              <button class="btn" data-op="MC">MC</button>
+
+              <button class="btn" data-value="0">0</button>
+              <button class="btn" data-value=".">.</button>
+              <button class="btn btn-equal" data-op="=">=</button>
+              <button class="btn btn-wide" data-op="ans">Ans</button>
+            </div>
+
+            <!-- SCIENTIFIC KEYPAD (Upgraded) -->
+            <div class="keypad keypad-scientific" data-mode="scientific" style="display:none;">
+              <button class="btn btn-clear">AC</button>
+              <button class="btn" data-op="backspace">⌫</button>
+              <button class="btn" data-op="(">(</button>
+              <button class="btn" data-op=")">)</button>
+              <button class="btn" data-op="%">%</button>
+              <button class="btn btn-operator" data-op="/">÷</button>
+
+              <button class="btn" data-op="sin">sin</button>
+              <button class="btn" data-op="cos">cos</button>
+              <button class="btn" data-op="tan">tan</button>
+              <button class="btn" data-op="sqrt">√</button>
+              <button class="btn" data-op="pow">xʸ</button>
+              <button class="btn btn-operator" data-op="*">×</button>
+
+              <button class="btn" data-value="7">7</button>
+              <button class="btn" data-value="8">8</button>
+              <button class="btn" data-value="9">9</button>
+              <button class="btn" data-op="log">log</button>
+              <button class="btn" data-op="ln">ln</button>
+              <button class="btn btn-operator" data-op="-">−</button>
+
+              <button class="btn" data-value="4">4</button>
+              <button class="btn" data-value="5">5</button>
+              <button class="btn" data-value="6">6</button>
+              <button class="btn" data-op="x2">x²</button>
+              <button class="btn" data-op="x3">x³</button>
+              <button class="btn" data-op="M+">M+</button>
+
+              <button class="btn" data-value="1">1</button>
+              <button class="btn" data-value="2">2</button>
+              <button class="btn" data-value="3">3</button>
+              <button class="btn" data-op="pi">π</button>
+              <button class="btn" data-op="e">e</button>
+              <button class="btn" data-op="M-">M-</button>
+
+              <button class="btn" data-value="0">0</button>
+              <button class="btn" data-value=".">.</button>
+              <button class="btn btn-equal" data-op="=">=</button>
+              <button class="btn btn-wide" data-op="ans">Ans</button>
+
+              <!-- Degree/Radian toggle (NEW FEATURE) -->
+              <button class="btn btn-wide" data-op="toggle_deg_rad" id="degRadToggle">Deg</button>
+            </div>
+
+            <!-- PROGRAMMER KEYPAD (Upgraded) -->
+            <div class="keypad keypad-programmer" data-mode="programmer" style="display:none;">
+              <button class="btn btn-clear">AC</button>
+              <button class="btn" data-op="backspace">⌫</button>
+              <button class="btn" data-op="(">(</button>
+              <button class="btn" data-op=")">)</button>
+              <button class="btn" data-op="HEX">HEX</button>
+              <button class="btn" data-op="BIN">BIN</button>
+
+              <button class="btn" data-op="AND">AND</button>
+              <button class="btn" data-op="OR">OR</button>
+              <button class="btn" data-op="XOR">XOR</button>
+              <button class="btn" data-op="NOT">NOT</button>
+              <button class="btn" data-op="<<"><<</button>
+              <button class="btn" data-op=">>">>></button>
+
+              <button class="btn" data-value="7">7</button>
+              <button class="btn" data-value="8">8</button>
+              <button class="btn" data-value="9">9</button>
+              <button class="btn" data-op="A">A</button>
+              <button class="btn" data-op="B">B</button>
+              <button class="btn" data-op="C">C</button>
+
+              <button class="btn" data-value="4">4</button>
+              <button class="btn" data-value="5">5</button>
+              <button class="btn" data-value="6">6</button>
+              <button class="btn" data-op="D">D</button>
+              <button class="btn" data-op="E">E</button>
+              <button class="btn" data-op="F">F</button>
+
+              <button class="btn" data-value="1">1</button>
+              <button class="btn" data-value="2">2</button>
+              <button class="btn" data-value="3">3</button>
+              <button class="btn btn-operator" data-op="+">+</button>
+              <button class="btn btn-operator" data-op="-">−</button>
+              <button class="btn btn-operator" data-op="*">×</button>
+
+              <button class="btn" data-value="0">0</button>
+              <button class="btn btn-operator" data-op="/">÷</button>
+              <button class="btn btn-equal" data-op="=">=</button>
+              <button class="btn btn-wide" data-op="ans">Ans</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Memory + History -->
+        <aside class="calc-right">
+          <div class="history">
+            <div class="mem-display">Memory: <span id="memValue">0</span></div>
+            <div class="mem-controls">
+              <button class="btn small mem-btn" id="memMC">MC</button>
+              <button class="btn small mem-btn" id="memMR">MR</button>
+              <button class="btn small mem-btn" id="memMplus">M+</button>
+              <button class="btn small mem-btn" id="memMminus">M-</button>
+            </div>
+
+            <h3>History</h3>
+            <div class="history-list" id="historyList" aria-live="polite"></div>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <button class="btn small" id="clearHistory">Clear History</button>
+              <button class="btn small" id="exportHistory">Export History</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- PWA Install Button (unchanged) -->
+  <div class="pwa-install-container">
+    <button class="btn" id="installButton" style="display:none;">Install App</button>
+  </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+
+  <!-- Calculator Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const tabs = document.querySelectorAll('.mode-tab');
+      const keypads = document.querySelectorAll('[data-mode]');
+      const expressionEl = document.getElementById('calcExpression');
+      const resultEl = document.getElementById('calcResult');
+      const historyListEl = document.getElementById('historyList');
+      const memValueEl = document.getElementById('memValue');
+      const degRadToggle = document.getElementById('degRadToggle');
+
+      // State
+      let mode = 'basic';                 // basic | scientific | programmer
+      let expr = '';                      // expression shown
+      let ans = null;                     // last answer
+      let memory = 0;                     // memory slot (number)
+      let history = [];                   // {expr, result, mode}
+      let programmerBase = 'DEC';         // active base for programmer mode display
+      let angleMode = 'deg';              // deg | rad
+
+      // Helpers
+      function setMode(m) {
+        mode = m;
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === m));
+        keypads.forEach(k => {
+          if (k.dataset.mode === m) k.style.display = 'grid'; // Use 'grid' here
+          else k.style.display = 'none';
+        });
+        clearTempDisplay();
+        render();
+      }
+
+      function clearTempDisplay() {
+        expr = '';
+        render();
+      }
+
+      function render() {
+        expressionEl.textContent = expr || ' ';
+        // Render result according to programmer base if in programmer mode
+        if (mode === 'programmer') {
+          try {
+            const resultValue = evalProgrammer(expr || '0');
+            resultEl.textContent = formatProgrammerResult(resultValue, programmerBase);
+          } catch {
+            resultEl.textContent = 'Error';
+          }
+        } else {
+          try {
+            // Re-evaluate current expression to show preview on display change
+            const tempResult = safeEval(expr);
+            if (expr && expr.length > 0) {
+              resultEl.textContent = formatResult(tempResult);
+            } else {
+              resultEl.textContent = ans === null ? '0' : formatResult(ans);
+            }
+          } catch {
+            resultEl.textContent = 'Error';
+          }
+        }
+        memValueEl.textContent = formatResult(memory);
+      }
+
+      // Format programmer mode result for display
+      function formatProgrammerResult(value, base) {
+        if (isNaN(value)) return 'Error';
+        const intValue = Math.trunc(value);
+        switch (base) {
+          case 'HEX': return '0x' + intValue.toString(16).toUpperCase();
+          case 'BIN': return '0b' + intValue.toString(2);
+          case 'DEC': return String(intValue);
+          default: return String(intValue);
+        }
+      }
+
+      // Format result (basic/scientific) for display, handling large numbers with scientific notation
+      function formatResult(value) {
+        if (value === null) return '0';
+        if (Math.abs(value) > 1e15 || (Math.abs(value) < 1e-15 && value !== 0)) {
+            return value.toExponential(10); // Use scientific notation for very large/small numbers
+        }
+        return String(value);
+      }
+
+      function pushHistory(entry) {
+        history.unshift(entry);
+        if (history.length > 200) history.pop();
+        renderHistory();
+      }
+
+      function renderHistory() {
+        historyListEl.innerHTML = '';
+        history.forEach((h) => {
+          const div = document.createElement('div');
+          div.className = 'history-entry';
+          div.textContent = `${h.mode.toUpperCase()}: ${h.expr} = ${formatResult(h.result)}`;
+          div.title = 'Click to reuse';
+          div.addEventListener('click', () => {
+            expr = h.expr;
+            ans = h.result;
+            render();
+          });
+          historyListEl.appendChild(div);
+        });
+      }
+
+      // Evaluate expression safely-ish:
+      function safeEval(input) {
+        if (!input) return 0;
+        try {
+          // 1. Preprocess percentage: turn '50%' -> '(50/100)'
+          input = input.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+          // 2. Replace unicode operator chars and powers
+          input = input.replace(/×/g, '*').replace(/÷/g, '/').replace(/xʸ/g, '**').replace(/x²/g, '**2').replace(/x³/g, '**3');
+
+          // 3. Replace trig/log functions to Math. and handle angle mode
+          if (mode === 'scientific') {
+            const angleConversion = angleMode === 'deg' ? ' * Math.PI / 180' : '';
+            // Match sin(x), cos(x), tan(x) and wrap a conversion factor if needed
+            input = input.replace(/\b(sin|cos|tan)\(([^)]+)\)/g, (match, fnName, arg) => {
+              // Only apply conversion if argument is not pi or e (for simplicity, assumes user enters pi/e in radians)
+              if (arg.includes('pi') || arg.includes('e')) {
+                return `Math.${fnName}(${arg})`;
+              }
+              return `Math.${fnName}(${arg}${angleConversion})`;
+            });
+
+            input = input.replace(/\blog\(/g, 'Math.log10(');
+            input = input.replace(/\bln\(/g, 'Math.log(');
+            input = input.replace(/\bsqrt\(/g, 'Math.sqrt(');
+            input = input.replace(/\babs\(/g, 'Math.abs(');
+            input = input.replace(/\bpow\(/g, 'Math.pow('); // Add pow function
+            input = input.replace(/\bpi\b/g, String(Math.PI));
+            input = input.replace(/\be\b/g, String(Math.E));
+          }
+
+          // 4. Evaluate using Function (safer sandbox approach)
+          const fn = new Function('return (' + input + ')');
+          let res = fn();
+
+          if (!isFinite(res) || Number.isNaN(res)) throw new Error('Math Error');
+
+          // Round small floating precision issues
+          res = Math.round((res + Number.EPSILON) * 1e12) / 1e12;
+          return res;
+        } catch (e) {
+          throw new Error('Error');
+        }
+      }
+
+      // Programmer mode evaluate (Fixed Logic)
+      function evalProgrammer(input) {
+        try {
+          // 1. Normalize spaces
+          input = input.replace(/\s+/g, ' ').trim();
+
+          // 2. Replace text operators with bitwise JS operators
+          let s = input.replace(/\bAND\b/gi, '&');
+          s = s.replace(/\bOR\b/gi, '|');
+          s = s.replace(/\bXOR\b/gi, '^');
+          s = s.replace(/\bNOT\b/gi, '~');
+
+          // 3. Evaluate using Function (safer sandbox approach)
+          // Evaluate using Function (safer sandbox approach)
+          const fn = new Function('return (' + s + ')');
+          let res = fn();
+
+          if (!Number.isFinite(res) || Number.isNaN(res)) throw new Error('Math Error');
+          res = Math.trunc(res); // Ensure integer result for programmer logic
+
+          return res;
+        } catch (e) {
+          throw new Error('Error');
+        }
+      }
+
+      // Button handlers
+      function onBtnClick(btn) {
+        const value = btn.dataset.value;
+        const op = btn.dataset.op;
+
+        if (value !== undefined) {
+          // Append number or hex letter (in programmer)
+          if (value === '.') {
+            const tokens = expr.split(/[\s+\-*/%^()]+/).filter(Boolean);
+            const last = tokens[tokens.length - 1] || '';
+            if (last.includes('.')) return;
+          }
+          expr += value;
+          render();
+          return;
+        }
+
+        if (!op) return;
+
+        switch (op) {
+          case 'backspace':
+            expr = expr.slice(0, -1);
+            if (expr === '') expr = '';
+            render();
+            break;
+          case 'AC': // All Clear button
+            expr = '';
+            ans = null;
+            render();
+            break;
+          case 'toggle_sign':
+            // Toggle sign of current expression/result
+            if (expr === '') {
+                ans = ans !== null ? ans * -1 : 0;
+            } else {
+                expr = expr.startsWith('-') ? expr.substring(1) : '-' + expr;
+            }
+            render();
+            break;
+          case 'pi':
+          case 'e':
+            expr += op;
+            render();
+            break;
+          case 'x2': // x²
+            expr += 'x²';
+            render();
+            break;
+          case 'x3': // x³
+            expr += 'x³';
+            render();
+            break;
+          case 'pow': // xʸ
+            expr += 'xʸ';
+            render();
+            break;
+          case 'sin':
+          case 'cos':
+          case 'tan':
+          case 'log':
+          case 'ln':
+          case 'sqrt':
+            expr += op + '(';
+            render();
+            break;
+          case '%':
+            expr += '%';
+            render();
+            break;
+          case 'M+':
+            try {
+              const val = computeCurrent();
+              memory = (Number(memory) || 0) + Number(val || 0);
+              memValueEl.textContent = String(memory);
+            } catch(e) { /* ignore on error */ }
+            break;
+          case 'M-':
+            try {
+              const val = computeCurrent();
+              memory = (Number(memory) || 0) - Number(val || 0);
+              memValueEl.textContent = String(memory);
+            } catch(e) { /* ignore on error */ }
+            break;
+          case 'MR':
+            expr += String(memory);
+            render();
+            break;
+          case 'MC':
+            memory = 0;
+            memValueEl.textContent = String(memory);
+            break;
+          case 'ans':
+            if (ans !== null) expr += String(ans);
+            render();
+            break;
+          case 'HEX':
+            programmerBase = 'HEX'; render(); break;
+          case 'BIN':
+            programmerBase = 'BIN'; render(); break;
+          case 'DEC':
+            programmerBase = 'DEC'; render(); break;
+          case 'toggle_deg_rad':
+            angleMode = angleMode === 'deg' ? 'rad' : 'deg';
+            degRadToggle.textContent = angleMode.toUpperCase();
+            render();
+            break;
+          case 'AND':
+          case 'OR':
+          case 'XOR':
+          case 'NOT':
+          case '<<':
+          case '>>':
+            expr += ' ' + op + ' ';
+            render();
+            break;
+          case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+            if (mode === 'programmer') expr += op; // Only append hex letters in programmer mode
+            render();
+            break;
+          case '=':
+            try {
+              const res = computeAndRecord();
+              ans = res;
+              render();
+            } catch (e) {
+              ans = 'Error';
+              render();
+            }
+            break;
+          case '+': case '-': case '*': case '/': case '^':
+            expr += ' ' + op + ' ';
+            render();
+            break;
+          default:
+            expr += op;
+            render();
+        }
+      }
+
+      // computeCurrent: quick try to evaluate current expr, used for memory ops
+      function computeCurrent() {
+        if (!expr) return 0;
+        if (mode === 'programmer') {
+          return evalProgrammer(expr);
+        } else {
+          return safeEval(expr);
+        }
+      }
+
+      // computeAndRecord: evaluate, push to history, return result
+      function computeAndRecord() {
+        if (!expr) throw new Error('Empty');
+        let res;
+        if (mode === 'programmer') {
+          res = evalProgrammer(expr);
+        } else {
+          res = safeEval(expr);
+        }
+        pushHistory({ expr: expr, result: res, mode });
+        return res;
+      }
+
+      // --- Event Listeners ---
+      // Attach event listeners to keypad buttons
+      document.querySelectorAll('.keypad .btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          onBtnClick(btn);
+        });
+      });
+
+      // Tabs
+      tabs.forEach(t => {
+        t.addEventListener('click', () => {
+          setMode(t.dataset.mode);
+          // Update button appearance (active state logic is in CSS and setMode)
+        });
+      });
+
+      // Memory buttons on right
+      document.getElementById('memMC').addEventListener('click', () => { memory = 0; memValueEl.textContent = formatResult(memory); });
+      document.getElementById('memMR').addEventListener('click', () => { expr += String(memory); render(); });
+      document.getElementById('memMplus').addEventListener('click', () => { try { memory += computeCurrent(); memValueEl.textContent = formatResult(memory); } catch{} });
+      document.getElementById('memMminus').addEventListener('click', () => { try { memory -= computeCurrent(); memValueEl.textContent = formatResult(memory); } catch{} });
+
+      // History controls
+      document.getElementById('clearHistory').addEventListener('click', () => { history = []; renderHistory(); });
+      document.getElementById('exportHistory').addEventListener('click', () => {
+        if (!history.length) return alert('No history to export');
+        const text = history.map(h => `${h.mode.toUpperCase()}: ${h.expr} = ${formatResult(h.result)}`).join('\n');
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'calculator_history.txt';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      // Keyboard support (Improved)
+      document.addEventListener('keydown', (e) => {
+        const key = e.key;
+        const targetElement = e.target.tagName;
+
+        if (targetElement === 'INPUT' || targetElement === 'TEXTAREA') {
+            return; // Don't interfere if focus is on input/textarea
+        }
+
+        e.preventDefault(); // Prevent default browser actions for common keys
+
+        // Numeric input and basic operators
+        if (/[0-9]/.test(key) || key === '.') {
+          expr += key; render();
+        } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+          expr += ' ' + key + ' '; render();
+        } else if (key === 'Enter' || key === '=') {
+          try { ans = computeAndRecord(); expr = ''; render(); } catch { ans = 'Error'; expr = ''; render(); }
+        } else if (key === 'Backspace') {
+          expr = expr.slice(0, -1); render();
+        } else if (key === 'Escape') {
+          expr = ''; ans = null; render();
+        } else if (mode === 'scientific' && (key === 'D' || key === 'd')) {
+          degRadToggle.click(); // Toggle degree/radian
+        } else if (mode === 'programmer') {
+          if (/[A-F]/.test(key.toUpperCase())) { expr += key.toUpperCase(); render(); }
+          // Add other programmer specific key bindings here (like bitwise shifts)
+        }
+        // Switch tabs by 1/2/3 keys
+        if (key === '1') { setMode('basic'); }
+        if (key === '2') { setMode('scientific'); }
+        if (key === '3') { setMode('programmer'); }
+      });
+
+      // initial render
+      setMode('basic');
+      render();
+    });
+  </script>
+</body>
+</html>

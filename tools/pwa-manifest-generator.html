@@ -1,0 +1,252 @@
+<!-- START OF FILE: tools/pwa-manifest-generator.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>PWA Manifest Generator | Create manifest.json for Progressive Web Apps | Tulvaa</title>
+    <meta name="description" content="Generate a valid manifest.json file for your Progressive Web App. Customize app name, colors, display mode, and icon paths easily. Privacy-first local tool." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Manifest Generator --- */
+        .manifest-form-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        .manifest-form-grid input, .manifest-form-grid select { font-size: 1em; }
+        .manifest-form-grid label { font-size: 0.9em; font-weight: 500; margin-bottom: 0.2rem; display: block; }
+
+        /* Icon management section (NEW) */
+        .icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .icon-grid .input-group { display: flex; flex-direction: column; }
+
+        .output-container { margin-top: 1.5rem; position: relative; }
+        .output-text {
+            word-wrap: break-word;
+            min-height: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 0.95em;
+            font-family: monospace;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>⚙️ PWA Manifest Generator</h1>
+                <p class="tool-desc">Create the manifest.json file needed to turn your website into an installable Progressive Web App (PWA).</p>
+            </header>
+
+            <div class="manifest-form-grid">
+                <div>
+                    <label for="appName">App Name:</label>
+                    <input type="text" id="appName" value="My Awesome App" class="tool-input">
+                </div>
+                <div>
+                    <label for="shortName">Short Name (for homescreen icon):</label>
+                    <input type="text" id="shortName" value="AwesomeApp" class="tool-input">
+                </div>
+                <div>
+                    <label for="description">Description (for app store listing):</label>
+                    <textarea id="description" class="tool-input">A great new Progressive Web App for all your needs.</textarea>
+                </div>
+                <div>
+                    <label for="startUrl">Start URL (e.g., /index.html):</label>
+                    <input type="text" id="startUrl" value="/" class="tool-input">
+                </div>
+                <div>
+                    <label for="displayMode">Display Mode:</label>
+                    <select id="displayMode" class="tool-input">
+                        <option value="standalone">Standalone</option>
+                        <option value="fullscreen">Fullscreen</option>
+                        <option value="minimal-ui">Minimal UI</option>
+                        <option value="browser">Browser</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="themeColor">Theme Color (Browser UI):</label>
+                    <input type="color" id="themeColor" value="#2563eb" class="tool-input">
+                </div>
+                <div>
+                    <label for="bgColor">Background Color (Splash Screen):</label>
+                    <input type="color" id="bgColor" value="#ffffff" class="tool-input">
+                </div>
+                <!-- Icons Input Section (NEW) -->
+                <div class="icon-section">
+                    <h4>Icons (Required sizes)</h4>
+                    <p class="drop-hint">Add paths relative to your app root (e.g., `/images/icons/`)</p>
+                    <div class="icon-grid">
+                        <div class="input-group">
+                            <label for="icon192">Icon 192x192:</label>
+                            <input type="text" id="icon192" value="/icons/icon-192x192.png" class="tool-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="icon512">Icon 512x512:</label>
+                            <input type="text" id="icon512" value="/icons/icon-512x512.png" class="tool-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Generated Code:</h3>
+            <div class="output-container">
+                <textarea id="jsonOutput" class="output-text" readonly></textarea>
+                <button class="copy-button" id="copyBtn">Copy</button>
+            </div>
+
+            <div class="tool-controls" style="margin-top: 1rem;">
+                <a class="btn" id="downloadBtn" download="manifest.json">⬇️ Download manifest.json</a>
+                <button class="btn" id="clearBtn">Clear Form</button> <!-- NEW CLEAR BUTTON -->
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Fill out the form with your PWA details (app name, start URL, colors).</li>
+                <li>Ensure the icon paths are correct. PWA requires at least 192x192 and 512x512 icons.</li>
+                <li>The `manifest.json` code will automatically update in the box below.</li>
+                <li>Click "Download manifest.json" to save the file.</li>
+                <li>Place this file in the root directory of your website and link to it in your HTML `<head>`.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const appNameInput = document.getElementById('appName');
+            const shortNameInput = document.getElementById('shortName');
+            const startUrlInput = document.getElementById('startUrl');
+            const displayModeInput = document.getElementById('displayMode');
+            const themeColorInput = document.getElementById('themeColor');
+            const bgColorInput = document.getElementById('bgColor');
+            const descriptionInput = document.getElementById('description'); // NEW element
+            const icon192Input = document.getElementById('icon192'); // NEW element
+            const icon512Input = document.getElementById('icon512'); // NEW element
+            const jsonOutput = document.getElementById('jsonOutput');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const clearBtn = document.getElementById('clearBtn'); // NEW element
+
+            // --- Function to generate manifest JSON object ---
+            function generateManifest() {
+                const icons = [];
+                icons.push({ src: icon192Input.value, sizes: "192x192", type: "image/png" });
+                icons.push({ src: icon512Input.value, sizes: "512x512", type: "image/png" });
+
+                const manifest = {
+                    name: appNameInput.value,
+                    short_name: shortNameInput.value,
+                    description: descriptionInput.value, // Added new description field
+                    start_url: startUrlInput.value,
+                    display: displayModeInput.value,
+                    background_color: bgColorInput.value,
+                    theme_color: themeColorInput.value,
+                    icons: icons
+                };
+                return manifest;
+            }
+
+            // --- Function to render and update outputs ---
+            function updateManifestOutput() {
+                const manifest = generateManifest();
+                const jsonString = JSON.stringify(manifest, null, 2);
+                jsonOutput.value = jsonString;
+
+                const dataUri = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+                downloadBtn.href = dataUri;
+                downloadBtn.download = "manifest.json";
+            }
+
+            // --- Reset Function (NEW) ---
+            function resetForm() {
+                appNameInput.value = "My Awesome App";
+                shortNameInput.value = "AwesomeApp";
+                descriptionInput.value = "A great new Progressive Web App for all your needs.";
+                startUrlInput.value = "/";
+                displayModeInput.value = "standalone";
+                themeColorInput.value = "#2563eb";
+                bgColorInput.value = "#ffffff";
+                icon192Input.value = "/icons/icon-192x192.png";
+                icon512Input.value = "/icons/icon-512x512.png";
+                updateManifestOutput();
+            }
+
+            // --- Event Listeners ---
+            const inputs = [appNameInput, shortNameInput, startUrlInput, displayModeInput, themeColorInput, bgColorInput, descriptionInput, icon192Input, icon512Input];
+            inputs.forEach(input => input.addEventListener('input', updateManifestOutput));
+
+            copyBtn.addEventListener('click', () => {
+                jsonOutput.select();
+                navigator.clipboard.writeText(jsonOutput.value)
+                    .then(() => alert('Copied to clipboard!'))
+                    .catch(err => console.error('Copy failed:', err));
+            });
+            clearBtn.addEventListener('click', resetForm);
+
+            // Initial output generation on page load
+            updateManifestOutput();
+        });
+    </script>
+</body>
+</html>

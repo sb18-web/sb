@@ -1,0 +1,341 @@
+<!-- START OF FILE: tools/image-resizer.html (Upgraded) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Image Resizer Online | Resize JPG & PNG Images | Tulvaa</title>
+    <meta name="description" content="Resize images online quickly and easily. Change image dimensions (width and height) while maintaining aspect ratio. Privacy-first local processing." />
+    <!-- END SEO OPTIMIZATION -->
+    <!-- Updated to root-relative path -->
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tool-specific styles based on the common layout */
+        .tool-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+        .tool-page .tool-card {
+            max-width: 700px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .tool-header { text-align: center; margin-bottom: 1.5rem; }
+        .tool-header h1 { font-size: 2rem; color: var(--accent); font-weight: 700; }
+        .tool-header .tool-desc { font-size: 1rem; color: #475569; max-width: 650px; margin: 0 auto; line-height: 1.5; }
+        [data-theme="dark"] .tool-header .tool-desc { color: #94a3b8; }
+
+        /* --- Custom UI for Image Resizer --- */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: var(--bg);
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            padding: 2rem 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1.05em;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-drop-zone:hover, .upload-drop-zone.active {
+            border-color: #1e40af;
+            background: #e0ebff;
+        }
+        [data-theme="dark"] .upload-drop-zone { background: #334155; }
+        [data-theme="dark"] .upload-drop-zone:hover, [data-theme="dark"] .upload-drop-zone.active { background: #475569; border-color: #60a5fa; }
+        .upload-drop-zone .add-icon { font-size: 2.5em; color: var(--accent); margin-bottom: 0.35em; pointer-events: none; }
+        .upload-drop-zone input[type="file"] { display: none; }
+        .upload-drop-zone .drop-hint { font-size:0.9em;color:#888;margin-top:0.5em;}
+
+        .resizer-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .resizer-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .resizer-input-row { display: flex; gap: 1rem; margin-top: 1rem; }
+        .resizer-input-row label { font-size: 0.9em; font-weight: 500; margin-bottom: 0.2rem; display: block; }
+        .resizer-input-row input { width: 100px; text-align: center; }
+
+        .image-preview-container {
+            margin-top: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--bg);
+        }
+        .image-preview { max-width: 100%; height: auto; border-radius: 6px; }
+        .result-container { margin-top: 1rem; display: flex; flex-direction: column; align-items: center; }
+        .result-container .btn { margin: 0.5rem; }
+        .size-info { margin-top: 0.5rem; color: #64748b; font-size: 0.9em; }
+
+        /* How To Section styles (inherited from style.css) */
+        .how-to { max-width: 700px; margin-top: 2rem; }
+
+        /* Aspect ratio lock button style */
+        .aspect-ratio-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        .aspect-ratio-toggle input[type="checkbox"] { margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>📏 Image Resizer</h1>
+                <p class="tool-desc">Easily change image dimensions. Keep aspect ratio by leaving one field blank or by using the lock feature.</p>
+            </header>
+
+            <div class="upload-drop-zone" id="dropZone">
+                <span class="add-icon">+</span>
+                <span style="font-weight:500;">Add image or drag & drop</span>
+                <input type="file" id="imgInput" accept="image/png,image/jpeg">
+                <div class="drop-hint">Supported formats: JPG, PNG</div>
+            </div>
+
+            <div class="resizer-options" id="resizerOptions" style="display: none;">
+                <p class="size-info">Original Dimensions: <span id="originalDimensions">0 x 0 px</span></p>
+                <div class="resizer-input-row">
+                    <div class="resizer-input-group">
+                        <label for="w">Width (px):</label>
+                        <input type="number" id="w" class="tool-input">
+                    </div>
+                    <div class="resizer-input-group">
+                        <label for="h">Height (px):</label>
+                        <input type="number" id="h" class="tool-input">
+                    </div>
+                </div>
+                <!-- Aspect ratio lock toggle (NEW FEATURE) -->
+                <div class="aspect-ratio-toggle">
+                    <input type="checkbox" id="aspectLock" checked>
+                    <label for="aspectLock">Keep Aspect Ratio</label>
+                </div>
+                <div class="tool-controls" style="margin-top: 1.5rem;">
+                    <button class="btn" id="goBtn">Resize & Download</button>
+                    <button class="btn" id="clearBtn">Clear</button> <!-- NEW CLEAR BUTTON -->
+                </div>
+            </div>
+
+            <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <h3>Resized Image Preview:</h3>
+                <img id="imagePreview" class="image-preview" src="" alt="Resized Image Preview">
+                <div class="result-container">
+                    <a class="btn" id="downloadLink" href="#" download="resized.png" style="margin-top: 1rem;">⬇️ Download Resized Image</a>
+                    <button class="btn" id="shareBtn" style="margin-left: 0.5rem;">Share Image</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-to">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Click on the box or drag and drop your image file.</li>
+                <li>(New) Use the "Keep Aspect Ratio" option to maintain proportion when changing dimensions.</li>
+                <li>Enter the new width and/or height. If aspect ratio lock is enabled, changing one value will automatically update the other.</li>
+                <li>Click "Resize & Download" to process the image.</li>
+                <li>The resized image will appear for preview and download.</li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
+            const dropZone = document.getElementById('dropZone');
+            const imgInput = document.getElementById('imgInput');
+            const resizerOptions = document.getElementById('resizerOptions');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            const originalDimensionsSpan = document.getElementById('originalDimensions');
+            const widthInput = document.getElementById('w');
+            const heightInput = document.getElementById('h');
+            const aspectLockCheck = document.getElementById('aspectLock'); // NEW element
+            const goBtn = document.getElementById('goBtn');
+            const downloadLink = document.getElementById('downloadLink');
+            const shareBtn = document.getElementById('shareBtn');
+            const clearBtn = document.getElementById('clearBtn'); // NEW element
+
+            // --- State Variables ---
+            let originalWidth = 0;
+            let originalHeight = 0;
+            let currentFile = null;
+            let currentBlob = null;
+
+            // --- UI Reset Function ---
+            function resetUI() {
+                dropZone.style.display = 'flex';
+                imagePreviewContainer.style.display = 'none';
+                resizerOptions.style.display = 'none';
+                originalDimensionsSpan.textContent = '0 x 0 px';
+                widthInput.value = '';
+                heightInput.value = '';
+                currentFile = null;
+                currentBlob = null;
+            }
+            clearBtn.addEventListener('click', resetUI);
+
+            // --- Image Handling ---
+            dropZone.addEventListener('click', () => imgInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+            imgInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+                currentFile = file;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result; // Use preview to get dimensions
+                    const img = new Image();
+                    img.onload = () => {
+                        originalWidth = img.width;
+                        originalHeight = img.height;
+                        originalDimensionsSpan.textContent = `${originalWidth} x ${originalHeight} px`;
+                        widthInput.value = originalWidth;
+                        heightInput.value = originalHeight;
+                        resizerOptions.style.display = 'flex'; // Show options after file selected
+                        imagePreviewContainer.style.display = 'block';
+                        dropZone.style.display = 'none'; // Hide dropzone after file is selected
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // --- Aspect Ratio Lock Logic (NEW) ---
+            function updateAspectRatio(event) {
+                if (!aspectLockCheck.checked || originalWidth === 0 || originalHeight === 0) return;
+
+                const inputChanged = event.target.id;
+                const newWidth = parseInt(widthInput.value);
+                const newHeight = parseInt(heightInput.value);
+                const ratio = originalWidth / originalHeight;
+
+                if (inputChanged === 'w' && !isNaN(newWidth)) {
+                    heightInput.value = Math.round(newWidth / ratio);
+                } else if (inputChanged === 'h' && !isNaN(newHeight)) {
+                    widthInput.value = Math.round(newHeight * ratio);
+                }
+            }
+
+            widthInput.addEventListener('input', updateAspectRatio);
+            heightInput.addEventListener('input', updateAspectRatio);
+
+            // --- Resizing Logic ---
+            goBtn.addEventListener('click', performResizing);
+
+            async function performResizing() {
+                if (!currentFile) return;
+
+                const targetWidth = parseInt(widthInput.value);
+                const targetHeight = parseInt(heightInput.value);
+
+                if (isNaN(targetWidth) || isNaN(targetHeight) || targetWidth <= 0 || targetHeight <= 0) {
+                    alert('Please enter valid dimensions.');
+                    return;
+                }
+
+                goBtn.disabled = true;
+                goBtn.textContent = 'Resizing...';
+
+                // Read file data for resizing via canvas
+                const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(currentFile); });
+                const img = new Image();
+                img.src = dataUrl;
+                await new Promise(r => img.onload = r);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                canvas.getContext('2d').drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                // Convert canvas back to blob for download/share
+                canvas.toBlob((blob) => {
+                    currentBlob = blob;
+                    const resizedDataUrl = URL.createObjectURL(blob);
+                    downloadLink.href = resizedDataUrl;
+                    downloadLink.download = `resized_${targetWidth}x${targetHeight}.png`; // Always save as PNG for transparency support
+
+                    goBtn.disabled = false;
+                    goBtn.textContent = 'Resize & Download';
+                }, 'image/png');
+            }
+
+            // --- Web Share API Logic ---
+            shareBtn.addEventListener('click', async () => {
+                if (!currentBlob) {
+                    alert('Please resize the image first.');
+                    return;
+                }
+                if (navigator.share) {
+                    const file = new File([currentBlob], downloadLink.download, { type: currentBlob.type });
+                    navigator.share({
+                        files: [file],
+                        title: 'Resized Image',
+                        text: 'Sharing a resized image from Tulvaa!'
+                    }).catch(error => console.error('Error sharing:', error));
+                } else {
+                    alert('Web Share API not supported in this browser. Please use the download button.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
