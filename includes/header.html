@@ -1,0 +1,84 @@
+<!-- START OF FILE: includes/header.html (Updated with Tulvaa branding and search bar integration, removed mobile hamburger) -->
+<header class="main-header">
+    <a href="/" class="logo">Tulvaa</a> <!-- Updated logo text -->
+    <nav class="main-nav">
+        <!-- New Search Input Field and All Tools Toggle Integration -->
+        <div class="header-search-container">
+            <!-- All Tools Button (integrated with search bar) -->
+            <button class="all-tools-btn" id="allToolsBtn">All Tools <span class="arrow">▼</span></button>
+            <input type="text" id="headerSearchInput" placeholder="Search tools..." autocomplete="off">
+            <!-- NEW: Search Suggestions Dropdown -->
+            <div id="searchResultsDropdown" class="search-suggestions" style="display: none;"></div>
+        </div>
+
+        <!-- Desktop Navigation Links (will be hidden on mobile by CSS) -->
+        <ul>
+            <li><a href="/index.html#category-image">Image Tools</a></li>
+            <li><a href="/index.html#category-text">Text Tools</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+        </ul>
+
+        <button id="theme-toggle" class="theme-btn" aria-label="Toggle dark mode">🌙</button>
+    </nav>
+    <!-- <button class="hamburger-btn" id="hamburgerBtn">☰</button> --> <!-- REMOVED for bottom navigation bar on mobile -->
+</header>
+
+<div class="mega-menu" id="allToolsMenu">
+    <!-- Mega menu content (full menu) -->
+    <div class="mega-menu-grid">
+        <div class="mega-menu-category">
+            <h3>Image Tools</h3>
+            <ul>
+                <li><a href="/tools/image-to-pdf.html"><span class="tool-icon">📄</span> Image to PDF</a></li>
+                <li><a href="/tools/image-compressor.html"><span class="tool-icon">🗜️</span> Image Compressor</a></li>
+                <li><a href="/tools/image-resizer.html"><span class="tool-icon">📏</span> Image Resizer</a></li>
+                <li><a href="/tools/convert-png-jpg.html"><span class="tool-icon">🖼️</span> PNG <> JPG</a></li>
+                <li><a href="/tools/steganography.html"><span class="tool-icon">🕵️</span> Steganography</a></li>
+                <li><a href="/tools/image-palette-extractor.html"><span class="tool-icon">🎨</span> Palette Extractor</a></li>
+                <li><a href="/tools/image-placeholder-generator.html"><span class="tool-icon">🖼️</span> Placeholder Generator</a></li>
+            </ul>
+        </div>
+        <div class="mega-menu-category">
+            <h3>Text & Writing</h3>
+            <ul>
+                <li><a href="/tools/text-diff.html"><span class="tool-icon">🔍</span> Text Diff</a></li>
+                <li><a href="/tools/text-encryptor.html"><span class="tool-icon">🔐</span> Text Encryptor</a></li>
+                <li><a href="/tools/text-to-pdf.html"><span class="tool-icon">📄</span> Text to PDF</a></li>
+                <li><a href="/tools/word-counter.html"><span class="tool-icon">✏️</span> Word Counter</a></li>
+                <li><a href="/tools/line-operations.html"><span class="tool-icon">🔠</span> Line Operations</a></li>
+                <li><a href="/tools/text-cleaner.html"><span class="tool-icon">🧹</span> Text Cleaner</a></li>
+                <li><a href="/tools/delivery-note-generator.html"><span class="tool-icon">📝</span> Delivery Note Generator</a></li>
+            </ul>
+        </div>
+        <div class="mega-menu-category">
+            <h3>Converters</h3>
+            <ul>
+                <li><a href="/tools/unit-converter.html"><span class="tool-icon">⚖️</span> Unit Converter</a></li>
+                <li><a href="/tools/document-scanner.html"><span class="tool-icon">📑</span> Document Scanner</a></li>
+                <li><a href="/tools/csv-editor.html"><span class="tool-icon">📊</span> CSV Editor</a></li>
+                <li><a href="/tools/calculator.html"><span class="tool-icon">🧮</span> Calculator</a></li>
+                <li><a href="/tools/pdf-editor.html"><span class="tool-icon">✍️</span> PDF Editor</a></li>
+            </ul>
+        </div>
+        <div class="mega-menu-category">
+            <h3>Encoder/Decoder</h3>
+            <ul>
+                <li><a href="/tools/qr-reader.html"><span class="tool-icon">📱</span> QR & Barcode Reader</a></li> <!-- NEW Tool -->
+                <li><a href="/tools/url-encoder.html"><span class="tool-icon">🔗</span> URL Encoder</a></li>
+                <li><a href="/tools/hash-generator.html"><span class="tool-icon">🛡️</span> Hash Generator</a></li>
+                <li><a href="/tools/password-manager.html"><span class="tool-icon">🔑</span> Password Manager</a></li>
+                <li><a href="/tools/password-generator.html"><span class="tool-icon">🔑</span> Password Generator</a></li>
+                <li><a href="/tools/qr-generator.html"><span class="tool-icon">📱</span> QR Generator</a></li>
+                <li><a href="/tools/pwa-manifest-generator.html"><span class="tool-icon">⚙️</span> PWA Manifest Generator</a></li>
+            </ul>
+        </div>
+         <div class="mega-menu-category">
+            <h3>AI Tools</h3>
+            <ul>
+                <li><a href="/tools/image-to-prompt.html"><span class="tool-icon">🤖</span> Image to Prompt</a></li>
+                <li><a href="/tools/json-formatter.html"><span class="tool-icon">🧩</span> JSON Formatter</a></li>
+                <li><a href="/tools/html-viewer.html"><span class="tool-icon">💻</span> HTML Viewer</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
