@@ -1,0 +1,300 @@
+<!-- START OF FILE: index.html (Updated with Tulvaa branding and bottom nav placeholder) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO OPTIMIZATION -->
+    <title>Tulvaa – Privacy First, Offline Power | Free Web Tools</title>
+    <meta name="description" content="Access a powerful collection of free, privacy-first online tools. All processing runs directly in your browser without uploading files to our servers." />
+    <!-- END SEO OPTIMIZATION -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS for 'Not Found' message */
+        .search-message-container {
+            padding: 2rem;
+            text-align: center;
+            background: var(--card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: none; /* Hidden by default */
+        }
+        .search-message-container h2 {
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        .search-message-container p {
+            font-size: 1rem;
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+        .search-message-container .action-link {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        [data-theme="dark"] .search-message-container p { color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main>
+        <section class="home-hero" id="homeHero">
+            <h1>Tulvaa: Privacy First, Offline Power</h1> <!-- Updated H1 for branding -->
+            <p class="subtitle">A powerful collection of online tools for developers and everyday tasks.</p>
+        </section>
+
+        <!-- New: Dedicated Search Results Container -->
+        <div class="search-results-container" id="searchResultsContainer" style="display: none;">
+            <!-- Search results will appear here -->
+        </div>
+
+        <section class="feature-highlights" id="featureHighlights">
+            <div class="highlight-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Privacy First</span>
+                <p>No files uploaded. Everything runs in your browser.</p>
+            </div>
+            <div class="highlight-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                <span>100% Free</span>
+                <p>Full access to all tools without any hidden fees.</p>
+            </div>
+            <div class="highlight-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Secure & Fast</span>
+                <p>Fast processing on your device without server communication.</p>
+            </div>
+        </section>
+
+        <!-- New: Favourites Section (Re-added) -->
+        <section id="favoritesSection" style="display: none;">
+            <h2 class="section-title">My Favourites</h2>
+            <div class="tool-grid-home" id="favoritesGrid">
+                <!-- Favourites will be injected here by JavaScript -->
+            </div>
+        </section>
+
+        <h2 class="section-title" id="allToolsTitle">All Tools by Category</h2>
+        <div class="filter-tabs" id="filterTabs">
+            <button class="tab-btn active" data-filter="all">All</button>
+            <button class="tab-btn" data-filter="image">Image</button>
+            <button class="tab-btn" data-filter="text">Text</button>
+            <button class="tab-btn" data-filter="convert">Converters</button>
+            <button class="tab-btn" data-filter="encode">Encoders</button>
+            <button class="tab-btn" data-filter="ai">AI</button>
+        </div>
+        
+        <!-- NEW: "Not Found" message container -->
+        <div class="search-message-container" id="searchResultsMessage" style="display: none;">
+            <h2>No Tools Found</h2>
+            <p>We couldn't find any tools matching your search query. Try searching for a different keyword or check out these options:</p>
+            <p><a href="/contact.html" class="action-link">Suggest a new tool</a> | <a href="#" id="pwaPromptLink" class="action-link">Install our PWA for offline access</a></p>
+        </div>
+
+        <div class="tool-grid-home" id="toolGrid">
+            <!-- All tool cards list -->
+            <a href="tools/image-to-pdf.html" class="tool-card-home" data-category="image" data-keywords="image pdf jpg png convert" data-tool-id="image-to-pdf">
+                <div class="tool-header-home">
+                    <div class="tool-logo tool-logo-image"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg></div><h2 class="tool-title">Image to PDF</h2></div><p class="tool-desc">Combine multiple images into a single PDF.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-to-pdf">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/image-compressor.html" class="tool-card-home" data-category="image" data-keywords="image compress reduce size quality" data-tool-id="image-compressor">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m14-7-5 5-5-5m5 5V3"></path></svg></div><h2 class="tool-title">Image Compressor</h2></div><p class="tool-desc">Reduce image file size without losing quality.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-compressor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/image-resizer.html" class="tool-card-home" data-category="image" data-keywords="image resize scale dimensions" data-tool-id="image-resizer">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></div><h2 class="tool-title">Image Resizer</h2></div><p class="tool-desc">Easily resize your images to specific dimensions.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-resizer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/convert-png-jpg.html" class="tool-card-home" data-category="image" data-keywords="png jpg convert image format" data-tool-id="convert-png-jpg">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="8 21 3 21 3 16"></polyline><line x1="15" y1="15" x2="3" y2="20"></line></svg></div><h2 class="tool-title">PNG <> JPG</h2></div><p class="tool-desc">Convert PNG images to JPG and vice versa.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="convert-png-jpg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/image-palette-extractor.html" class="tool-card-home" data-category="image" data-keywords="palette color extract image" data-tool-id="image-palette-extractor">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><span class="tool-icon">🎨</span></div><h2 class="tool-title">Palette Extractor</h2></div><p class="tool-desc">Extract color palette from images.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-palette-extractor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/image-placeholder-generator.html" class="tool-card-home" data-category="image" data-keywords="placeholder generator image" data-tool-id="image-placeholder-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><span class="tool-icon">🖼️</span></div><h2 class="tool-title">Placeholder Generator</h2></div><p class="tool-desc">Generate custom placeholder images.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-placeholder-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/steganography.html" class="tool-card-home" data-category="image" data-keywords="steganography hide text image secret" data-tool-id="steganography">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-image"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div><h2 class="tool-title">Steganography</h2></div><p class="tool-desc">Hide secret text inside images or extract it.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="steganography">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/text-diff.html" class="tool-card-home" data-category="text" data-keywords="text diff compare difference checker" data-tool-id="text-diff">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div><h2 class="tool-title">Text Diff Checker</h2></div><p class="tool-desc">Visually compare two texts to see the differences.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="text-diff">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/word-counter.html" class="tool-card-home" data-category="text" data-keywords="word character count sentences paragraphs" data-tool-id="word-counter">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg></div><h2 class="tool-title">Word Counter</h2></div><p class="tool-desc">Count words, characters, sentences, and paragraphs.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="word-counter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/text-encryptor.html" class="tool-card-home" data-category="text" data-keywords="text encrypt decrypt password aes secure" data-tool-id="text-encryptor">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><h2 class="tool-title">Text Encryptor</h2></div><p class="tool-desc">Encrypt or decrypt text with a password.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="text-encryptor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/text-to-pdf.html" class="tool-card-home" data-category="text" data-keywords="text pdf document convert" data-tool-id="text-to-pdf">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg></div><h2 class="tool-title">Text to PDF</h2></div><p class="tool-desc">Turn plain text into a styled PDF document.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="text-to-pdf">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/line-operations.html" class="tool-card-home" data-category="text" data-keywords="line operations sort shuffle duplicates" data-tool-id="line-operations">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><span class="tool-icon">🔠</span></div><h2 class="tool-title">Line Operations</h2></div><p class="tool-desc">Sort, shuffle, or remove duplicate lines from text.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="line-operations">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/text-cleaner.html" class="tool-card-home" data-category="text" data-keywords="text cleaner spaces line breaks html" data-tool-id="text-cleaner">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><span class="tool-icon">🧹</span></div><h2 class="tool-title">Text Cleaner</h2></div><p class="tool-desc">Remove extra spaces, line breaks, and HTML tags.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="text-cleaner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/delivery-note-generator.html" class="tool-card-home" data-category="text" data-keywords="delivery note challan generator pdf" data-tool-id="delivery-note-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-text"><span class="tool-icon">📝</span></div><h2 class="tool-title">Delivery Note Generator</h2></div><p class="tool-desc">Create customizable delivery notes and challans.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="delivery-note-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/unit-converter.html" class="tool-card-home" data-category="convert" data-keywords="unit converter length weight area" data-tool-id="unit-converter">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-convert"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.49 19l-5.73-5.73a1 1 0 0 0-1.42 0l-5.73 5.73a1 1 0 0 0 0 1.42l5.73 5.73a1 1 0 0 0 1.42 0l5.73-5.73a1 1 0 0 0 0-1.42zM3.51 5l5.73 5.73a1 1 0 0 0 1.42 0l5.73-5.73a1 1 0 0 0 0-1.42L10.66.29a1 1 0 0 0-1.42 0L3.51 3.58a1 1 0 0 0 0 1.42z"></path></svg></div><h2 class="tool-title">Unit Converter</h2></div><p class="tool-desc">Convert between various units with live results.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="unit-converter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/document-scanner.html" class="tool-card-home" data-category="convert" data-keywords="document scanner camera crop enhance" data-tool-id="document-scanner">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-convert"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="3"></circle></svg></div><h2 class="tool-title">Document Scanner</h2></div><p class="tool-desc">Scan documents with your camera or images.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="document-scanner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/csv-editor.html" class="tool-card-home" data-category="convert" data-keywords="csv editor spreadsheet data viewer" data-tool-id="csv-editor">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-convert"><span class="tool-icon">📊</span></div><h2 class="tool-title">CSV Editor</h2></div><p class="tool-desc">View, sort, and edit CSV or TSV files in a structured data grid.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="csv-editor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/calculator.html" class="tool-card-home" data-category="convert" data-keywords="calculator math addition subtraction multiplication division" data-tool-id="calculator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-convert"><span class="tool-icon">🧮</span></div><h2 class="tool-title">Calculator</h2></div><p class="tool-desc">Perform basic math operations quickly.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="calculator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/pdf-editor.html" class="tool-card-home" data-category="convert" data-keywords="pdf editor split merge reorder password protect" data-tool-id="pdf-editor">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-convert"><span class="tool-icon">✍️</span></div><h2 class="tool-title">PDF Editor</h2></div><p class="tool-desc">Edit, modify, merge, and secure your PDFs privately.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="pdf-editor">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/qr-reader.html" class="tool-card-home" data-category="encode" data-keywords="qr code reader scanner barcode camera image" data-tool-id="qr-reader">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="3"></circle></svg></div><h2 class="tool-title">QR & Barcode Reader</h2></div><p class="tool-desc">Scan QR codes and barcodes using your camera or image.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="qr-reader">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/url-encoder.html" class="tool-card-home" data-category="encode" data-keywords="url encode decode query string" data-tool-id="url-encoder">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg></div><h2 class="tool-title">URL Encoder</h2></div><p class="tool-desc">Encode or decode URLs and query strings.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="url-encoder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/hash-generator.html" class="tool-card-home" data-category="encode" data-keywords="hash generator md5 sha256 secure" data-tool-id="hash-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><h2 class="tool-title">Hash Generator</h2></div><p class="tool-desc">Generate secure hashes (MD5, SHA-256).</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="hash-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/password-manager.html" class="tool-card-home" data-category="encode" data-keywords="password manager store security encryption" data-tool-id="password-manager">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><h2 class="tool-title">Password Manager</h2></div><p class="tool-desc">Store and manage your passwords securely in your browser.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="password-manager">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/password-generator.html" class="tool-card-home" data-category="encode" data-keywords="password generator strong random secure" data-tool-id="password-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></div><h2 class="tool-title">Password Generator</h2></div><p class="tool-desc">Create strong, random passwords.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="password-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/qr-generator.html" class="tool-card-home" data-category="encode" data-keywords="qr code generator link url text" data-tool-id="qr-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></div><h2 class="tool-title">QR Generator</h2></div><p class="tool-desc">Make QR codes for links, text, WiFi, and more.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="qr-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/pwa-manifest-generator.html" class="tool-card-home" data-category="encode" data-keywords="pwa manifest generator web app" data-tool-id="pwa-manifest-generator">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-encode"><span class="tool-icon">⚙️</span></div><h2 class="tool-title">PWA Manifest Generator</h2></div><p class="tool-desc">Create a manifest file for Progressive Web Apps.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="pwa-manifest-generator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/image-to-prompt.html" class="tool-card-home" data-category="ai" data-keywords="ai image prompt generator" data-tool-id="image-to-prompt">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-ai"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="3" y="15" width="7" height="5"></rect><rect x="14" y="11" width="7" height="9"></rect></svg></div><h2 class="tool-title">Image to Prompt (AI)</h2></div><p class="tool-desc">Generate prompts from images using AI.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="image-to-prompt">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/json-formatter.html" class="tool-card-home" data-category="ai" data-keywords="json formatter beautify validate" data-tool-id="json-formatter">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-ai"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></div><h2 class="tool-title">JSON Formatter</h2></div><p class="tool-desc">Beautify and validate JSON.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="json-formatter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+            <a href="tools/html-viewer.html" class="tool-card-home" data-category="ai" data-keywords="html viewer live code sandbox" data-tool-id="html-viewer">
+                <div class="tool-header-home"><div class="tool-logo tool-logo-ai"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div><h2 class="tool-title">HTML Viewer</h2></div><p class="tool-desc">View and edit HTML live.</p>
+                <button class="favorite-btn" aria-label="Add to Favorites" data-tool-id="html-viewer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"></path></svg>
+                </button>
+            </a>
+        </div>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 3. Bottom Navigation Placeholder (NEW) -->
+    <div id="bottom-nav-placeholder"></div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+    <script src="/script.js"></script>
+</body>
+</html>

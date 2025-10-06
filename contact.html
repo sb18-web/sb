@@ -1,0 +1,68 @@
+<!-- START OF FILE contact.html (updated, common styles removed) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Tulvaa</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Custom UI for Contact Page (Unique Styles Only) --- */
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .contact-info {
+            margin-top: 2rem;
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .contact-info p { font-size: 1em; line-height: 1.6; color: #475569; }
+        .contact-info a { color: var(--accent); font-weight: 600; text-decoration: none; }
+        [data-theme="dark"] .contact-info p { color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <!-- 1. Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <main class="content tool-page">
+        <section class="tool-card">
+            <header class="tool-header">
+                <h1>Contact Us</h1>
+                <p class="tool-desc">Got questions, feedback, or suggestions? Reach out to us using the form below.</p>
+            </header>
+            <form class="contact-form" onsubmit="event.preventDefault(); alert('Thanks — demo form received.');">
+                <input type="text" placeholder="Your Name" required class="tool-input">
+                <input type="email" placeholder="Your Email" required class="tool-input">
+                <textarea placeholder="Your Message" rows="5" class="tool-input"></textarea>
+                <div class="tool-controls">
+                    <button class="btn" type="submit">Send Message</button>
+                </div>
+            </form>
+            <div class="contact-info">
+                <p>You can also contact us directly via email:</p>
+                <p><a href="mailto:contact@Tulvaa.in">contact@Tulvaa.in</a></p>
+            </div>
+        </section>
+    </main>
+
+    <!-- PWA Install Button -->
+    <div class="pwa-install-container">
+        <button class="btn" id="installButton" style="display:none;">Install App</button>
+    </div>
+
+    <!-- 2. Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <!-- NEW: Load the component loader script first -->
+    <script src="/js/load-components.js"></script>
+    <!-- Keep existing scripts here -->
+    <script src="/theme.js"></script>
+</body>
+</html>

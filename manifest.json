@@ -1,0 +1,21 @@
+{
+  "name": "Tulvaa",
+  "short_name": "Tulvaa",
+  "description": "Privacy First, Offline Power. Tools for creators and developers.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icon/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
